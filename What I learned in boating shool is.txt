@@ -1,0 +1,19 @@
+Element Categories
+
+Core:
+-player movement
+-health
+
+
+Secondary:
+-score
+-enemy shooting
+
+Polish:
+-particle effects
+-sound effects
+
+coroutine:
+-StartCorutine()
+-IEneumerator
+-Yield
