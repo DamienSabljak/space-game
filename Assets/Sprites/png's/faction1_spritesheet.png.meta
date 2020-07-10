@@ -1,0 +1,383 @@
+fileFormatVersion: 2
+guid: d41cf9b8613a5484d8e8613ad0f1ea01
+TextureImporter:
+  fileIDToRecycleName:
+    21300000: faction1_spritesheet_0
+    21300002: faction1_spritesheet_1
+    21300004: faction1_spritesheet_2
+    21300006: faction1_spritesheet_3
+    21300008: faction1_spritesheet_4
+    21300010: faction1_spritesheet_5
+    21300012: faction1_spritesheet_6
+    21300014: faction1_spritesheet_7
+    21300016: faction1_spritesheet_8
+    21300018: faction1_spritesheet_9
+    21300020: faction1_spritesheet_10
+    21300022: faction1_spritesheet_11
+    21300024: faction1_spritesheet_12
+    21300026: faction1_spritesheet_13
+    21300028: faction1_spritesheet_14
+    21300030: faction1_spritesheet_15
+    21300032: faction1_spritesheet_16
+    21300034: faction1_spritesheet_17
+    21300036: faction1_spritesheet_18
+    21300038: faction1_spritesheet_19
+    21300040: faction1_spritesheet_20
+    21300042: faction1_spritesheet_21
+    21300044: faction1_spritesheet_22
+    21300046: faction1_spritesheet_23
+    21300048: faction1_spritesheet_24
+    21300050: faction1_spritesheet_25
+    21300052: faction1_spritesheet_26
+    21300054: faction1_spritesheet_27
+    21300056: faction1_spritesheet_28
+    21300058: faction1_spritesheet_29
+    21300060: faction1_spritesheet_30
+    21300062: faction1_spritesheet_31
+    21300064: faction1_spritesheet_32
+    21300066: faction1_spritesheet_33
+    21300068: faction1_spritesheet_34
+    21300070: faction1_spritesheet_35
+    21300072: faction1_spritesheet_36
+    21300074: faction1_spritesheet_37
+    21300076: faction1_spritesheet_38
+    21300078: faction1_spritesheet_39
+    21300080: faction1_spritesheet_40
+    21300082: faction1_spritesheet_41
+    21300084: faction1_spritesheet_42
+    21300086: faction1_spritesheet_43
+    21300088: faction1_spritesheet_44
+    21300090: faction1_spritesheet_45
+    21300092: faction1_spritesheet_46
+    21300094: faction1_spritesheet_47
+    21300096: faction1_spritesheet_48
+    21300098: faction1_spritesheet_49
+    21300100: faction1_spritesheet_50
+    21300102: faction1_spritesheet_51
+    21300104: faction1_spritesheet_52
+    21300106: faction1_spritesheet_53
+    21300108: faction1_spritesheet_54
+    21300110: faction1_spritesheet_55
+    21300112: faction1_spritesheet_56
+    21300114: faction1_spritesheet_57
+    21300116: faction1_spritesheet_58
+    21300118: faction1_spritesheet_59
+    21300120: faction1_spritesheet_60
+    21300122: faction1_spritesheet_61
+    21300124: faction1_spritesheet_62
+    21300126: faction1_spritesheet_63
+    21300128: faction1_spritesheet_64
+    21300130: faction1_spritesheet_65
+    21300132: faction1_spritesheet_66
+    21300134: faction1_spritesheet_67
+    21300136: faction1_spritesheet_68
+    21300138: faction1_spritesheet_69
+    21300140: faction1_spritesheet_70
+    21300142: faction1_spritesheet_71
+    21300144: faction1_spritesheet_72
+    21300146: faction1_spritesheet_73
+    21300148: faction1_spritesheet_74
+    21300150: faction1_spritesheet_75
+    21300152: faction1_spritesheet_76
+    21300154: faction1_spritesheet_77
+    21300156: faction1_spritesheet_78
+    21300158: faction1_spritesheet_79
+    21300160: faction1_spritesheet_80
+    21300162: faction1_spritesheet_81
+    21300164: faction1_spritesheet_82
+    21300166: faction1_spritesheet_83
+    21300168: faction1_spritesheet_84
+    21300170: faction1_spritesheet_85
+    21300172: faction1_spritesheet_86
+    21300174: faction1_spritesheet_87
+    21300176: faction1_spritesheet_88
+    21300178: faction1_spritesheet_89
+    21300180: faction1_spritesheet_90
+    21300182: faction1_spritesheet_91
+    21300184: faction1_spritesheet_92
+    21300186: faction1_spritesheet_93
+    21300188: faction1_spritesheet_94
+    21300190: faction1_spritesheet_95
+    21300192: faction1_spritesheet_96
+    21300194: faction1_spritesheet_97
+    21300196: faction1_spritesheet_98
+    21300198: faction1_spritesheet_99
+    21300200: faction1_spritesheet_100
+    21300202: faction1_spritesheet_101
+    21300204: faction1_spritesheet_102
+    21300206: faction1_spritesheet_103
+    21300208: faction1_spritesheet_104
+    21300210: faction1_spritesheet_105
+    21300212: faction1_spritesheet_106
+    21300214: faction1_spritesheet_107
+    21300216: faction1_spritesheet_108
+    21300218: faction1_spritesheet_109
+    21300220: faction1_spritesheet_110
+    21300222: faction1_spritesheet_111
+    21300224: faction1_spritesheet_112
+    21300226: faction1_spritesheet_113
+    21300228: faction1_spritesheet_114
+    21300230: faction1_spritesheet_115
+    21300232: faction1_spritesheet_116
+    21300234: faction1_spritesheet_117
+    21300236: faction1_spritesheet_118
+    21300238: faction1_spritesheet_119
+    21300240: faction1_spritesheet_120
+    21300242: faction1_spritesheet_121
+    21300244: faction1_spritesheet_122
+    21300246: faction1_spritesheet_123
+    21300248: faction1_spritesheet_124
+    21300250: faction1_spritesheet_125
+    21300252: faction1_spritesheet_126
+    21300254: faction1_spritesheet_127
+    21300256: faction1_spritesheet_128
+    21300258: faction1_spritesheet_129
+    21300260: faction1_spritesheet_130
+    21300262: faction1_spritesheet_131
+    21300264: faction1_spritesheet_132
+    21300266: faction1_spritesheet_133
+    21300268: faction1_spritesheet_134
+    21300270: faction1_spritesheet_135
+    21300272: faction1_spritesheet_136
+    21300274: faction1_spritesheet_137
+    21300276: faction1_spritesheet_138
+    21300278: faction1_spritesheet_139
+    21300280: faction1_spritesheet_140
+    21300282: faction1_spritesheet_141
+    21300284: faction1_spritesheet_142
+    21300286: faction1_spritesheet_143
+  externalObjects: {}
+  serializedVersion: 7
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 1
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 0
+    aniso: -1
+    mipBias: -100
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 2
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  platformSettings:
+  - serializedVersion: 2
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 2
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    androidETC2FallbackOverride: 0
+  - serializedVersion: 2
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 2
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    androidETC2FallbackOverride: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: faction1_spritesheet_0
+      rect:
+        serializedVersion: 2
+        x: 18
+        y: 194
+        width: 30
+        height: 58
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: d93b2ea5d7c3a6845881cd1698bf21a6
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: faction1_spritesheet_1
+      rect:
+        serializedVersion: 2
+        x: 14
+        y: 125
+        width: 41
+        height: 65
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 2, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 49f5c76168f54184c96a2e46df64ac76
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: faction1_spritesheet_2
+      rect:
+        serializedVersion: 2
+        x: 84
+        y: 192
+        width: 28
+        height: 56
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: c319e3db6813709409690dca67fe95fc
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: faction1_spritesheet_3
+      rect:
+        serializedVersion: 2
+        x: 150
+        y: 189
+        width: 35
+        height: 59
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: ec558a1fbe6faaf4dbf5333c3a2d6d71
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: faction1_spritesheet_4
+      rect:
+        serializedVersion: 2
+        x: 192
+        y: 216
+        width: 40
+        height: 14
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: d903ae775413cbd41b14bd6e94336243
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: faction1_spritesheet_5
+      rect:
+        serializedVersion: 2
+        x: 208
+        y: 202
+        width: 22
+        height: 10
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: dca4b4b958a53304bb1c261551db17d1
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: faction1_spritesheet_6
+      rect:
+        serializedVersion: 2
+        x: 57
+        y: 164
+        width: 34
+        height: 12
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: c798307407775a446abc655e2dfeede7
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    physicsShape: []
+    bones: []
+    spriteID: d3ebbdeec2f539b419cc2a7aa731dbcb
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+  spritePackingTag: 
+  pSDRemoveMatte: 0
+  pSDShowRemoveMatteOption: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
