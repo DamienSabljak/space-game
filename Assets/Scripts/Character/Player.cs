@@ -28,6 +28,7 @@ public class Player : Character {
     [SerializeField] [Range(0, 1)] float deathSFXVol = 0.7f;
 
     public PlayerInventory inventory;
+
     Coroutine firingCoroutine; 
     float xMin, xMax, yMin, yMax;
     public List<Modifier> ModifiersList;//holds information on current modifiers affecting the player
@@ -47,7 +48,6 @@ public class Player : Character {
 
     }
 
-    
     // Update is called once per frame
     void Update () {
         if (Level.pause != true)
@@ -108,7 +108,7 @@ public class Player : Character {
     }
 
     private void Interact()
-    {
+    {//used to handle action button calls 
         if (Input.GetButtonDown("Interact"))
         {
             Debug.Log("interact button pressed");
@@ -122,9 +122,9 @@ public class Player : Character {
 
     }
 
-    //Shifts camera based on mouse posiion
+    
     private void ShiftCamera()
-    {
+    {//Shifts camera based on mouse posiion
         Transform cameraPos = transform.Find("Main Camera");
         cameraPos.localPosition = (Input.mousePosition - new Vector3(-1.6f,-1.6f))*CameraShiftScale;
     }
@@ -149,9 +149,8 @@ public class Player : Character {
         }
     }
 
-    //helper method used in method above
     private void selecttoolbaritem(int index)
-    {
+    {//helper method used in method above
         Debug.Log("hotkey " +((int) index+1)+ " selected");
         if (inventory.ToolBarList[index] == CurrentToolBarItem)
         {
@@ -182,9 +181,8 @@ public class Player : Character {
         }
     }
 
-    //use to select weapon
     private void UpdateCurrentToolBarItem()
-    {
+    {//use to select weapon
         if (CurrentToolBarItem != null)
         {
             Debug.Log("updating current weapon");
@@ -193,8 +191,6 @@ public class Player : Character {
     }
 
     //****COMBAT****
-
-
     private void Fire()
     {
         if (CurrentToolBarItem != null)
@@ -274,15 +270,10 @@ public class Player : Character {
     {
         //Debug.Log("welcome to interact method!");
         Debug.Log(interact && interact.WaitForInput && Input.GetButtonDown("Interact"));
-        GameObject parent = interact.transform.parent.gameObject;//find out what the interactable is attatched to 
+        //GameObject parent = interact.transform.parent.gameObject;//find out what the interactable is attatched to 
         if (interact.WaitForInput && Input.GetButtonDown("Interact"))//see if interaction requires user input
-        { 
-            
-            if (interact.Parent.GetComponent<Vendor>() != null)//vendor
-            {
-                HandleVendor(parent.GetComponent<Vendor>());
-                
-            }
+        {
+            interact.HandleInteractAction(this.gameObject);
             //Debug.Log("INTERACTT");
         }
     }
@@ -302,10 +293,7 @@ public class Player : Character {
         }
     }
 
-    private void HandleVendor(Vendor vendor)
-    {
-        vendor.StartDialog(this);
-    }
+    
 
     override public void HandleModifier(Modifier modifier)
     {
@@ -420,4 +408,14 @@ public class Player : Character {
         }
     }
 
+
+
+    /*
+     * ********old methods *******
+     * 
+     * private void HandleVendor(Vendor vendor)
+    {
+        vendor.StartDialog(this);
+    }
+    */
 }//end class

@@ -6,7 +6,7 @@ public class GameplaySceneHandler : MonoBehaviour {
 
 	// Use this for initialization
 	void Start () {
-        LevelManager.CurrentLevel += 1;
+        LevelManager.currentLevelnum += 1;
 	}
 	
 	// Update is called once per frame

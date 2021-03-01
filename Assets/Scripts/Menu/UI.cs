@@ -5,9 +5,10 @@ using UnityEngine.UI;////ADD LIBRARY WHEN NEEDED
 
 public class UI : MonoBehaviour {
     [SerializeField] Text HealthUI;
-    [SerializeField] Text AmmoUI;
-    [SerializeField] Player Player;
+    [SerializeField] Text ammoUI;
+    [SerializeField] Player player;
     [SerializeField] ToolBar toolBarCanvas;
+    [SerializeField] GameObject alertText;
 
     // Use this for initialization
     void Start () {
@@ -24,15 +25,15 @@ public class UI : MonoBehaviour {
     private void UpdateText()
     {
         Consumable.Type c = Consumable.Type.scrap;
-        HealthUI.text = "Health:" + Player.Health;
+        HealthUI.text = "Health:" + player.Health;
         c = Consumable.Type.ammo;
-        AmmoUI.text = "Ammo:" + Player.inventory.consumableArr[(int)c];
+        ammoUI.text = "Ammo:" + player.inventory.consumableArr[(int)c];
     }
 
     private void UpdateToolBar()
     {
         int i = 0;
-        foreach (Item item in Player.inventory.ToolBarList)
+        foreach (Item item in player.inventory.ToolBarList)
         {
             
             toolBarCanvas.UpdateItemBox(item, i);
@@ -40,4 +41,9 @@ public class UI : MonoBehaviour {
         }
     }
 
+    public void DisplayGameAlert(string message)
+    {//displays message and then fades away 
+        alertText.GetComponent<Animator>().SetTrigger("at_fade");//starts fade animation
+        alertText.GetComponent<Text>().text = message;
+    }
 }

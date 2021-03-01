@@ -7,7 +7,7 @@ public class LevelManager : MonoBehaviour
 {
 
     public static int PlayerScore=0;
-    public static int CurrentLevel = 0;//number of dungeons completed +1
+    public static int currentLevelnum = 0;//number of dungeons completed +1
 
 
     public void LoadGame()

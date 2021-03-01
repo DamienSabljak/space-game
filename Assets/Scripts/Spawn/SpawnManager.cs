@@ -1,10 +1,12 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class SpawnManager : MonoBehaviour {
 
     [SerializeField] public Grid RoomGrid; //grid to hold all room tilemaps in 
+    [SerializeField] public GameObject ui;//stores reference to UI object with ui script for calls 
     [Header("Spawn Points")]
     [SerializeField] GameObject EnemySpawnPoint;
     [SerializeField] int MinEnemies=0;
@@ -44,14 +46,14 @@ public class SpawnManager : MonoBehaviour {
         int amountToBeSpawned;
         GameObject newEnemy;
         SpawnWave spawnWave;
-        Debug.Log("CurrentLevel: " + LevelManager.CurrentLevel);
-        if (LevelManager.CurrentLevel-1 >= SpawnWaves.Count)
+        Debug.Log("CurrentLevel: " + LevelManager.currentLevelnum);
+        if (LevelManager.currentLevelnum-1 >= SpawnWaves.Count)
         {
             Debug.Log("WARNING: A call was made to access a wave level that wasnt in the list, using first wave as placeholder");
             spawnWave = SpawnWaves[0].GetComponent<SpawnWave>();
         }
         else
-            spawnWave = SpawnWaves[LevelManager.CurrentLevel-1].GetComponent<SpawnWave>();
+            spawnWave = SpawnWaves[LevelManager.currentLevelnum-1].GetComponent<SpawnWave>();
 
         //cycle through each enemy type in wave
         for (int i=0; i< spawnWave.Enemytypes.Count;i++)
@@ -62,7 +64,7 @@ public class SpawnManager : MonoBehaviour {
             amountToBeSpawned = spawnWave.EnemyAmounts[i];//clone copy object variable to not mutate it 
             //cycle through each room
             int timeout = 0;
-            while (amountToBeSpawned > 0 && timeout < 10)
+            while (amountToBeSpawned > 0 && timeout < 10000)
             {
                 foreach (Transform room in RoomGrid.transform)
                 {
@@ -79,6 +81,7 @@ public class SpawnManager : MonoBehaviour {
                             //spawn in random place in room
                             newEnemy.transform.localPosition = new Vector2(Random.Range(Room.RoomLocalBounds[0], Room.RoomLocalBounds[1]), Random.Range(Room.RoomLocalBounds[2], Room.RoomLocalBounds[3]));//place in random spot
                             amountToBeSpawned -= 1;
+                            Level.CurrentLevel.remainingEnemies += 1;//keep track of enemies on current level
                             //****TO FIX: Find way to make sure enemies arent spawned on walls*****
 
                         }
@@ -91,6 +94,7 @@ public class SpawnManager : MonoBehaviour {
             }
             Debug.Log("amount to be spawned: " + amountToBeSpawned);
         }
+        ui.GetComponent<UI>().DisplayGameAlert("Level " + LevelManager.currentLevelnum + ": " + Level.CurrentLevel.remainingEnemies.ToString() + " Enemies remaining");
     }
 
     //***OLDDD METHOD***

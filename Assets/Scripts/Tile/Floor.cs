@@ -55,7 +55,7 @@ public class Floor : MonoBehaviour {
     // Use this for initialization
     void Start ()
     {
-        NumRooms = LevelManager.CurrentLevel;
+        NumRooms = LevelManager.currentLevelnum;
         RoomsHaveBeenGenerated = false;//reset for new scene loads
         InitFloor();
         StartRoomGeneration();

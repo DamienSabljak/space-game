@@ -6,10 +6,9 @@ using UnityEngine;
 public class Inventory : MonoBehaviour {
     //****Consumables****
     [Header("Starting inventory")]
-    [SerializeField] int Scrap = 0;
-    [SerializeField] int Money = 0;
-    [SerializeField] int Ammo  = 0;
-
+    [SerializeField] public int startingScrap = 0;
+    [SerializeField] public int startingMoney = 0;
+    [SerializeField] public int startingAmmo  = 0;
 
     [HideInInspector] public int[] consumableArr = new int[Consumable.numTypes];//creates array sizeof number of types of consumables 
     [HideInInspector] public List<Item> ItemList;//holds items seen within toolbar
@@ -24,16 +23,14 @@ public class Inventory : MonoBehaviour {
     {
         //scrap
         Consumable.Type s = Consumable.Type.scrap;
-        consumableArr[(int)s] = Scrap;
+        consumableArr[(int)s] = startingScrap;
         //money
         Consumable.Type m = Consumable.Type.money;
-        consumableArr[(int)m] = Money;
+        consumableArr[(int)m] = startingMoney;
         //Ammo
         Consumable.Type a = Consumable.Type.ammo;
-        consumableArr[(int)a] = Ammo;
-    }
-
-    
+        consumableArr[(int)a] = startingAmmo;
+    } 
 
     // Update is called once per frame
     void Update () {
@@ -42,7 +39,9 @@ public class Inventory : MonoBehaviour {
 
     public void AddConsumable(Consumable.Type consumableType, int amount)
     {
-        consumableArr[(int)consumableType] += amount;
+        //Debug.Log("consumable added: ");
+        //consumableArr[(int)consumableType] += amount;
+        Debug.Log(consumableArr[(int)consumableType]);
     }
 
     public void AddItem(Item item)

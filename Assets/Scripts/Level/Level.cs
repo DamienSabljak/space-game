@@ -14,7 +14,8 @@ public class Level : MonoBehaviour {
     [SerializeField] Level  levelstart;
     [SerializeField] public Player currentPlayer;
     [SerializeField] public Vendor currentVendor;
-    [SerializeField] public static Level CurrentLevel;
+    [SerializeField] public static Level CurrentLevel;//stores current level object (not level number)
+    public int remainingEnemies;//reference to how many enemies are left on this level 
     Canvas menucanvas = null;
 
     void Start()

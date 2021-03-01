@@ -6,10 +6,13 @@ using UnityEngine.UI;
 
 public class ToolBar : MonoBehaviour {
     public List<GameObject> ItemBoxList;
+    [SerializeField] GameObject Player; //used for referencing players stats
+    [SerializeField] GameObject scrapCount;
+    [SerializeField] GameObject moneyCount;
 
 
-	// Use this for initialization
-	void Start () {
+    // Use this for initialization
+    void Start () {
         InitItemBoxList();
 	}
 
@@ -28,8 +31,10 @@ public class ToolBar : MonoBehaviour {
 
     // Update is called once per frame
     void Update () {
-		
-	}
+        UpdateScrapCount();
+        UpdateMoneyCount();
+
+    }
 
     public void UpdateItemBox(Item item, int index)
     {
@@ -46,6 +51,15 @@ public class ToolBar : MonoBehaviour {
             boxImage.gameObject.SetActive(true);
         }
         
+    }
+    
+    public void UpdateScrapCount()
+    {
+        scrapCount.GetComponent<Text>().text = Player.GetComponent<PlayerInventory>().consumableArr[(int) Consumable.Type.scrap].ToString();
+    }
+    public void UpdateMoneyCount()
+    {
+        moneyCount.GetComponent<Text>().text = Player.GetComponent<PlayerInventory>().consumableArr[(int)Consumable.Type.money].ToString();
     }
 
 
