@@ -61,7 +61,7 @@ public class Enemy : Character {
     }
 
     private void Fire()
-    {
+    {//old method, fire in cartesian direction
         //create missile
         GameObject Missle = Instantiate(
             projectile,
@@ -243,8 +243,8 @@ public class Enemy : Character {
 
     private void Die()
     {
-        //Destroy enemy
-        Destroy(gameObject);
+        Level.CurrentLevel.remainingEnemies.Remove(this.gameObject);//remove from tracker 
+        Destroy(gameObject);//Destroy enemy
         //create death FX
         GameObject deathVfx = Instantiate(
         DeathVFX,

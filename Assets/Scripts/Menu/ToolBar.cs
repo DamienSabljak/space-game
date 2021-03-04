@@ -6,7 +6,7 @@ using UnityEngine.UI;
 
 public class ToolBar : MonoBehaviour {
     public List<GameObject> ItemBoxList;
-    [SerializeField] GameObject Player; //used for referencing players stats
+    [SerializeField] GameObject player; //used for referencing players stats
     [SerializeField] GameObject scrapCount;
     [SerializeField] GameObject moneyCount;
 
@@ -14,6 +14,11 @@ public class ToolBar : MonoBehaviour {
     // Use this for initialization
     void Start () {
         InitItemBoxList();
+        if(LevelManager.player != null)
+        {
+            Debug.Log("referencing persistent player");
+            player = LevelManager.player.gameObject;
+        }
 	}
 
     private void InitItemBoxList()
@@ -55,11 +60,11 @@ public class ToolBar : MonoBehaviour {
     
     public void UpdateScrapCount()
     {
-        scrapCount.GetComponent<Text>().text = Player.GetComponent<PlayerInventory>().consumableArr[(int) Consumable.Type.scrap].ToString();
+        scrapCount.GetComponent<Text>().text = player.GetComponent<PlayerInventory>().consumableArr[(int) Consumable.Type.scrap].ToString();
     }
     public void UpdateMoneyCount()
     {
-        moneyCount.GetComponent<Text>().text = Player.GetComponent<PlayerInventory>().consumableArr[(int)Consumable.Type.money].ToString();
+        moneyCount.GetComponent<Text>().text = player.GetComponent<PlayerInventory>().consumableArr[(int)Consumable.Type.money].ToString();
     }
 
 

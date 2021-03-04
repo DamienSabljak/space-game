@@ -10,7 +10,7 @@ public class Inventory : MonoBehaviour {
     [SerializeField] public int startingMoney = 0;
     [SerializeField] public int startingAmmo  = 0;
 
-    [HideInInspector] public int[] consumableArr = new int[Consumable.numTypes];//creates array sizeof number of types of consumables 
+                     public int[] consumableArr = new int[Consumable.numTypes];//creates array sizeof number of types of consumables 
     [HideInInspector] public List<Item> ItemList;//holds items seen within toolbar
 
     // Use this for initialization
@@ -34,14 +34,16 @@ public class Inventory : MonoBehaviour {
 
     // Update is called once per frame
     void Update () {
-		
-	}
+        //Debug.Log(consumableArr[0]);
+        //Debug.Log(consumableArr[1]);
+        //Debug.Log(consumableArr[2]);
+    }
 
     public void AddConsumable(Consumable.Type consumableType, int amount)
     {
         //Debug.Log("consumable added: ");
-        //consumableArr[(int)consumableType] += amount;
-        Debug.Log(consumableArr[(int)consumableType]);
+        consumableArr[(int)consumableType] += amount;
+        //Debug.Log(consumableArr[(int)consumableType]);
     }
 
     public void AddItem(Item item)

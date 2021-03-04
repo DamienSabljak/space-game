@@ -40,8 +40,18 @@ public class Player : Character {
 
     }
     // Use this for initialization
+    void Awake()//awake is called before start methods
+    {
+        
+    }
     void Start () {
         //SetUpMoveBoundaries(); //use if boundaries for staic cameras needed
+        if (LevelManager.player != null)
+        {
+            Debug.Log("sepeku..");
+            LevelManager.player.gameObject.transform.position = this.gameObject.transform.position;
+            Destroy(this.gameObject); //prevent duplicate player objects
+        }
         UpdateCurrentToolBarItem();
         initInventory();
         
@@ -67,7 +77,9 @@ public class Player : Character {
 
     private void initInventory()
     {
+        Debug.Log("Player: creating new inventory object");
         inventory = gameObject.GetComponent<PlayerInventory>();
+
         if (inventory == null)
             Debug.Log("WARNING: Player must have inventory script attatched");
     }

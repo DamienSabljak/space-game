@@ -12,7 +12,10 @@ public class UI : MonoBehaviour {
 
     // Use this for initialization
     void Start () {
-		
+		if(LevelManager.player != null)//reference player from previous scene 
+        {
+            player = LevelManager.player;
+        }
 	}
 	
 	// Update is called once per frame
@@ -43,7 +46,9 @@ public class UI : MonoBehaviour {
 
     public void DisplayGameAlert(string message)
     {//displays message and then fades away 
-        alertText.GetComponent<Animator>().SetTrigger("at_fade");//starts fade animation
         alertText.GetComponent<Text>().text = message;
+        alertText.GetComponent<Animator>().SetTrigger("at_fade");//starts fade animation
+        Debug.Log("UI: displaying alert...");
+        
     }
 }

@@ -15,21 +15,31 @@ public class Level : MonoBehaviour {
     [SerializeField] public Player currentPlayer;
     [SerializeField] public Vendor currentVendor;
     [SerializeField] public static Level CurrentLevel;//stores current level object (not level number)
-    public int remainingEnemies;//reference to how many enemies are left on this level 
+    [SerializeField] public bool isShopLevel;//used to determine if this scene is a shop level
+    public List<GameObject> remainingEnemies;//reference to enemies spawned this level (only counted if spawned from spawnManager)
+    bool enemiesDefeated = false;//used as flag for text alert (prevent repetetive alerts) 
     Canvas menucanvas = null;
 
     void Start()
     {
         CurrentLevel = levelstart;
         ResumeGame();
+        HandleShopLevelStart();
         
     }
 
     void Update()
     {
         HandlePause();
+        HandleRemainingEnemies();
     }
-
+    private void HandleShopLevelStart()
+    {
+        if (isShopLevel)
+        {
+            gameCanvas.gameObject.GetComponent<UI>().DisplayGameAlert("Shop - purchase items...");
+        }
+    }
     private void HandlePause()
     {
         if (Input.GetButtonDown("Pause"))
@@ -38,6 +48,15 @@ public class Level : MonoBehaviour {
                 ResumeGame();
             else
                 PauseGame();
+        }
+    }
+    private void HandleRemainingEnemies()
+    {
+        if(!isShopLevel && remainingEnemies.Count <= 0 && SpawnManager.EnemiesHaveBeenSpawned && !enemiesDefeated)
+        {
+            Debug.Log("Displaying enemies defeated alert..");
+            gameCanvas.gameObject.GetComponent<UI>().DisplayGameAlert("All Enemies Defeated!\n escape before help arrives");
+            enemiesDefeated = true;
         }
     }
 
