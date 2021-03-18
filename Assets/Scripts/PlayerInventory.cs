@@ -41,7 +41,10 @@ public class PlayerInventory : Inventory {
 
     //overwrite old method
     new public void AddItem(Item item)
-    {//**WIP** ADD SUPPORT FOR ITEMS WITH MULTIPLE AMOUNTS
+    {//WARNING: MAKE SURE TO CAST AS PLAYERINV TO OVERRIDE EXISTING ITEM PARENT CLASS METHOD
+     //adds item to inventory
+     //does not create copy of item
+        Debug.Log("PlayerInv: Add item method called");
         bool wasAdded = false;
         //Add to toolbar slot if theres space
         for (int i = 0; i < ToolBarList.Count; i++)

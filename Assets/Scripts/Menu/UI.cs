@@ -9,7 +9,6 @@ public class UI : MonoBehaviour {
     [SerializeField] Player player;
     [SerializeField] ToolBar toolBarCanvas;
     [SerializeField] GameObject alertText;
-
     // Use this for initialization
     void Start () {
 		if(LevelManager.player != null)//reference player from previous scene 

@@ -4,20 +4,25 @@ using System.Collections.Generic;
 using UnityEngine;
 
 public class Vendor : Character {
-    private Character Customer;
+    [SerializeField] public List<GameObject> possibleItems;//holds a list containing all items which are possible to appear at a vendor for purchase 
+    public List<GameObject> availableItems;//holds a list of all items for sale (should be 3 only)
+    public Character Customer;
     [HideInInspector]  public Inventory CustomerInv;
     [HideInInspector]  public Inventory VendorInv;
-    [HideInInspector] public int[] ConsumablesCostArr;//array containing cost of consumables at enum index
+    [SerializeField] public int[] ConsumablesCostArr;//array containing cost of consumables at enum index
     // Use this for initialization
     void Start () {
         InitVendor();
-        InitCosts();
+        //InitCosts();
 	}
 
     public void InitVendor()
     {
         VendorInv = gameObject.GetComponent<Inventory>();
         //Debug.Log("Vendorinv should be added");
+        availableItems.Add(Instantiate(possibleItems[UnityEngine.Random.Range(0, possibleItems.Count - 1)]));//randomly choose 3 items for vendor inventory 
+        availableItems.Add(Instantiate(possibleItems[UnityEngine.Random.Range(0, possibleItems.Count - 1)]));
+        availableItems.Add(Instantiate(possibleItems[UnityEngine.Random.Range(0, possibleItems.Count - 1)]));
     }
 
     public void InitCosts()
@@ -44,8 +49,8 @@ public class Vendor : Character {
         CustomerInv = Customer.gameObject.GetComponent<PlayerInventory>();
 
         Level.CurrentLevel.currentVendor = this;
-        Level.CurrentLevel.OpenVendorMenu();
-        Level.CurrentLevel.OpenInventoryMenu();
+        Level.CurrentLevel.OpenVendorMenu();//opens shopMenu 
+        //Level.CurrentLevel.OpenInventoryMenu();//opens player's inventory (old)
 
         //used only for legacy menu (ShopMenu) 
         ShopMenu.CurrentVendor = this;

@@ -4,10 +4,13 @@ using UnityEngine;
 using UnityEngine.UI;
 
 public class ShopPanel : MonoBehaviour {
-    [SerializeField] Text ShopCount;
-    [SerializeField] Text CustomerCount;
-    [SerializeField] Text Cost;
-    [SerializeField] public Consumable.Type PanelItemType;//Stores the consumable type being displayed in this panel
+    [SerializeField] public Text itemCost;
+    [SerializeField] public Text itemName;
+    [SerializeField] public Image itemImage;
+    [SerializeField] public Button buybutton;
+    [SerializeField] public Item item;//reference to prefab this panel represents 
+
+    public bool hasBeenSold = false;
     //****CURRENTLY ONLY SET UP TO ACCEPT CONSUMABLES****
     // Use this for initialization
     void Start () {
@@ -19,29 +22,5 @@ public class ShopPanel : MonoBehaviour {
 		
 	}
 
-    public void UpdatePanel(Vendor CurrentVendor)
-    {
-        
-        Consumable.Type c = PanelItemType;
-        int shopcount = CurrentVendor.VendorInv.consumableArr[(int)c];
-        ShopCount.text = "" + shopcount;
-
-        int customercount = CurrentVendor.CustomerInv.consumableArr[(int)c];
-        CustomerCount.text = "" + customercount;
-
-        Cost.text = "$" + CurrentVendor.ConsumablesCostArr[(int)c];
-        
-    }
-
-    public void BUTPurchaseItem(int amount)//method for using buttons to purchase 
-    {
-        Consumable.Type type = PanelItemType;
-        ShopMenu.CurrentVendor.PurchaseItem(new Consumable(type), amount);
-    }
-    public void BUTSellItem(int amount)//method for using buttons to purchase 
-    {
-        Consumable.Type type = PanelItemType;
-        ShopMenu.CurrentVendor.SellItem(new Consumable(type), amount);
-    }
 
 }

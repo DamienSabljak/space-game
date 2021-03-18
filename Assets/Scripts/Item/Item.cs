@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class Item : MonoBehaviour {
     [SerializeField] public int amount;
-    [SerializeField] public int BaseCost;//cost base to be used in transactions, affected by multipliers
+    [SerializeField] public int baseCost;//cost base to be used in transactions, affected by multipliers
 
     private void OnTriggerEnter2D(Collider2D other)
     {

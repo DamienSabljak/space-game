@@ -8,7 +8,8 @@ public class Consumable : Item {
     {//list of consumables
         scrap,
         ammo,
-        money
+        money, 
+        health
     };
     public static int numTypes = System.Enum.GetNames(typeof(Type)).Length;
   

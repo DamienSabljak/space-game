@@ -64,7 +64,7 @@ public class ItemBox : MonoBehaviour {
                 Debug.Log("selling item from UI interaction");
                 Level.CurrentLevel.currentVendor.SellItem(Menu.SelectedItem.GetComponent<Item>(), 1);
                 //refresh menus as change has occured
-                Level.CurrentLevel.VendorCanvas.GetComponent<VendorInventoryMenu>().RefreshMenu();
+                Level.CurrentLevel.vendorCanvas.GetComponent<VendorInventoryMenu>().RefreshMenu();
                 Level.CurrentLevel.InventoryCanvas.GetComponent<PlayerInventoryMenu>().RefreshMenu();
 
             }
@@ -75,7 +75,7 @@ public class ItemBox : MonoBehaviour {
                 Debug.Log("buying item from UI interaction");
                 Level.CurrentLevel.currentVendor.PurchaseItem(Menu.SelectedItem.GetComponent<Item>(), 1);
                 //refresh menus as change has occured
-                Level.CurrentLevel.VendorCanvas.GetComponent<VendorInventoryMenu>().RefreshMenu();
+                Level.CurrentLevel.vendorCanvas.GetComponent<VendorInventoryMenu>().RefreshMenu();
                 Level.CurrentLevel.InventoryCanvas.GetComponent<PlayerInventoryMenu>().RefreshMenu();
             }
             Menu.SelectedItem = null;

@@ -10,7 +10,7 @@ public class Inventory : MonoBehaviour {
     [SerializeField] public int startingMoney = 0;
     [SerializeField] public int startingAmmo  = 0;
 
-                     public int[] consumableArr = new int[Consumable.numTypes];//creates array sizeof number of types of consumables 
+                     public int[] consumableArr;//creates array sizeof number of types of consumables 
     [HideInInspector] public List<Item> ItemList;//holds items seen within toolbar
 
     // Use this for initialization
@@ -21,6 +21,7 @@ public class Inventory : MonoBehaviour {
 
     public void InitConsumableArr()//add starting inventories
     {
+        consumableArr = new int[Consumable.numTypes];
         //scrap
         Consumable.Type s = Consumable.Type.scrap;
         consumableArr[(int)s] = startingScrap;

@@ -9,7 +9,7 @@ public class Level : MonoBehaviour {
     static public bool pause = false;
     [SerializeField] public Canvas pauseCanvas;
     [SerializeField] public Canvas gameCanvas;
-    [SerializeField] public Canvas VendorCanvas;
+    [SerializeField] public Canvas vendorCanvas;
     [SerializeField] public Canvas InventoryCanvas;
     [SerializeField] Level  levelstart;
     [SerializeField] public Player currentPlayer;
@@ -73,15 +73,16 @@ public class Level : MonoBehaviour {
         Time.timeScale = 1; //normal time scale is 1
         gameCanvas.gameObject.SetActive(true);
         pauseCanvas.gameObject.SetActive(false);
+        vendorCanvas.gameObject.SetActive(false);
         pause = false; 
     }
 
     public void OpenVendorMenu()
     {
         Time.timeScale = 0;
-        CurrentLevel.VendorCanvas.gameObject.SetActive(true);
+        CurrentLevel.vendorCanvas.gameObject.SetActive(true);
         //CurrentLevel.gameCanvas.gameObject.SetActive(false);
-        VendorCanvas.GetComponent<VendorInventoryMenu>().RefreshMenu();
+        //VendorCanvas.GetComponent<ShopMenu>().RefreshMenu();
         pause = true;
     }
 
@@ -89,7 +90,7 @@ public class Level : MonoBehaviour {
     {
         Debug.Log("Closing the vendor menu...");
         Time.timeScale = 1;
-        CurrentLevel.VendorCanvas.gameObject.SetActive(false);
+        CurrentLevel.vendorCanvas.gameObject.SetActive(false);
         CurrentLevel.gameCanvas.gameObject.SetActive(true);
         pause = false;
     }
