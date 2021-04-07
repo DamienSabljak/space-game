@@ -39,9 +39,6 @@ public class SensingField : Field {
             character.HandleField();
         }
 
-
-
-
     }
 
     private void OnTriggerExit2D(Collider2D other)

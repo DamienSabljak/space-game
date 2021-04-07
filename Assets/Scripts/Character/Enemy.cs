@@ -232,16 +232,20 @@ public class Enemy : Character {
             var layerMask = (1 << 8) + (1 << 16);//only look at player and wall layers
             RaycastHit2D hit = Physics2D.Raycast(transform.position, Vector3.Normalize(target.transform.position - transform.position), 10000, layerMask);
             //Debug.Log(hit.transform.position);
-            if (hit.transform.gameObject.GetComponent<Player>() != null)
+            if (hit.transform.gameObject.GetComponent<Player>() != null)//if player not within range and line of sight
             {
-                GetComponent<AStarPathfinder>().MoveToTarget(target.position);
+                if (isGrounded)
+                {
+                    GetComponent<AStarPathfinder>().MoveToTarget(target.position);
+                }
+                
             }
             yield return new WaitForSeconds(1);
             
         }
     }
 
-    private void Die()
+    public override void Die()
     {
         Level.CurrentLevel.remainingEnemies.Remove(this.gameObject);//remove from tracker 
         Destroy(gameObject);//Destroy enemy

@@ -10,7 +10,7 @@ public class ShopMenu : Menu
     [SerializeField] List<GameObject> itempanels;//list referencing each item purchasing object
     [SerializeField] Text buyAmmoText;//points to COST text (number only)
     [SerializeField] int ammoPerPurchase;//determines amount of ammo to give per ammo purchase 
-    [SerializeField] Text buyHealthText;//points to COST text (number only)
+    [SerializeField] Text buyHealthText;//points to COST text (number only)a
     [SerializeField] Player player;
     [SerializeField] Vendor vendor;//vendor attatched to this menu 
     bool debug_freeStuff = true;//used to make things cost nothing 
@@ -39,6 +39,7 @@ public class ShopMenu : Menu
         int panelIndex = 0;
         foreach (GameObject panel in itempanels)
         {
+            panel.GetComponent<ShopPanel>().item = vendor.availableItems[panelIndex].GetComponent<Item>();
             panel.GetComponent<ShopPanel>().itemName.text = vendor.availableItems[panelIndex].name;
             panel.GetComponent<ShopPanel>().itemCost.text = vendor.availableItems[panelIndex].GetComponent<Item>().baseCost.ToString();
             panel.GetComponent<ShopPanel>().itemImage.sprite = vendor.availableItems[panelIndex].GetComponent<SpriteRenderer>().sprite;

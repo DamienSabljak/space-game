@@ -7,6 +7,7 @@ public class Character : MonoBehaviour {
     [SerializeField] public float MoveSpeed = 10f;
 
     public enum direction { LEFT, RIGHT, UP, DOWN };
+    public bool isGrounded = true;
     public direction facing = direction.RIGHT;
     [HideInInspector] public Interactable standingOn;//holds info on what field character is standing in
 
@@ -72,7 +73,18 @@ public class Character : MonoBehaviour {
         Debug.Log("Handle Modifier Method Not Implemented on Character Class!");
     }
 
+    public virtual void Die()
+    {
+        //abstract method  to be used in other children classes 
+    }
+    
+    public IEnumerator FallOffMap()
+    {
+        this.GetComponent<Animator>().SetTrigger("offMap");
+        yield return new WaitForSeconds(2.0f);
+        this.Die();
 
-
+        yield return null;
+    }
 
 }

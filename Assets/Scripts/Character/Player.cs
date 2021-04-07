@@ -97,26 +97,30 @@ public class Player : Character {
     //****USER INPUTS****
     private void Move()
     {
-        Rigidbody2D body = gameObject.GetComponent<Rigidbody2D>();
-        var deltaX = Input.GetAxis("Horizontal")*Time.deltaTime*MoveSpeed;
-        var deltaY = Input.GetAxis("Vertical") * Time.deltaTime * MoveSpeed;
+        if(isGrounded)
+        {
+            Rigidbody2D body = gameObject.GetComponent<Rigidbody2D>();
+            var deltaX = Input.GetAxis("Horizontal") * Time.deltaTime * MoveSpeed;
+            var deltaY = Input.GetAxis("Vertical") * Time.deltaTime * MoveSpeed;
 
-        //set new facing
-        if (deltaY > 0)
-            facing = direction.UP;
-        else if (deltaY < 0)
-            facing = direction.DOWN;
-        if (deltaX > 0)
-            facing = direction.RIGHT;
-        else if (deltaX < 0)
-            facing = direction.LEFT;
+            //set new facing
+            if (deltaY > 0)
+                facing = direction.UP;
+            else if (deltaY < 0)
+                facing = direction.DOWN;
+            if (deltaX > 0)
+                facing = direction.RIGHT;
+            else if (deltaX < 0)
+                facing = direction.LEFT;
 
-        // var newXPos = Mathf.Clamp(transform.position.x + deltaX,xMin,xMax);//use with setupboundaries
-        // var newYPos = Mathf.Clamp(transform.position.y + deltaY,yMin,yMax);
-        var newXPos = transform.position.x + deltaX;
-        var newYPos = transform.position.y + deltaY;
+            // var newXPos = Mathf.Clamp(transform.position.x + deltaX,xMin,xMax);//use with setupboundaries
+            // var newYPos = Mathf.Clamp(transform.position.y + deltaY,yMin,yMax);
+            var newXPos = transform.position.x + deltaX;
+            var newYPos = transform.position.y + deltaY;
 
-        body.MovePosition(new Vector2(newXPos, newYPos));
+            body.MovePosition(new Vector2(newXPos, newYPos));
+        }
+        
     }
 
     private void Interact()
@@ -231,7 +235,7 @@ public class Player : Character {
         }
     }
 
-    private void Die()
+    public override void Die()
     {
         //Destroy(gameObject); //find a way for this to not cause errors 
         AudioSource.PlayClipAtPoint(deathSFX, Camera.main.transform.position, deathSFXVol);
@@ -297,6 +301,10 @@ public class Player : Character {
         {
             Consumable consumable = (Consumable)item;
             inventory.AddConsumable(consumable.consumabletype, consumable.amount);
+            if(consumable.pickupSFX != null)
+            {
+                AudioSource.PlayClipAtPoint(consumable.pickupSFX, Camera.main.transform.position, consumable.pickupSFXVol);//play opening sound
+            }
             Destroy(item.gameObject);
         }
         else

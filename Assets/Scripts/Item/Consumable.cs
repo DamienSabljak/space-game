@@ -4,6 +4,9 @@ using UnityEngine;
 
 public class Consumable : Item {
     //****class Statics****
+    [SerializeField] public AudioClip pickupSFX;//sound to be played when picked up 
+    [SerializeField] [Range(0, 1)] public float pickupSFXVol = 0.4f;
+
     public enum Type
     {//list of consumables
         scrap,

@@ -94,6 +94,7 @@
     <Compile Include="Assets\Scripts\Combat\Grenade.cs" />
     <Compile Include="Assets\Scripts\debugCanvas.cs" />
     <Compile Include="Assets\Scripts\EnemySpawner.cs" />
+    <Compile Include="Assets\Scripts\Field\BoundaryField.cs" />
     <Compile Include="Assets\Scripts\Field\Field.cs" />
     <Compile Include="Assets\Scripts\Field\Interactable.cs" />
     <Compile Include="Assets\Scripts\Field\SensingField.cs" />
