@@ -1,0 +1,327 @@
+fileFormatVersion: 2
+guid: fd17370762c9e45429e8bc9ab36a71dd
+TextureImporter:
+  fileIDToRecycleName:
+    21300000: faction2_spritesheet_0
+    21300002: faction2_spritesheet_1
+    21300004: faction2_spritesheet_2
+    21300006: faction2_spritesheet_3
+    21300008: faction2_spritesheet_4
+    21300010: faction2_spritesheet_5
+    21300012: faction2_spritesheet_6
+    21300014: faction2_spritesheet_7
+  externalObjects: {}
+  serializedVersion: 9
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 0
+    aniso: -1
+    mipBias: -100
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: 0
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  platformSettings:
+  - serializedVersion: 2
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    androidETC2FallbackOverride: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: faction2_spritesheet_0
+      rect:
+        serializedVersion: 2
+        x: 18
+        y: 193
+        width: 30
+        height: 58
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 02a8eac5f60cc1f4194034d8229e3e92
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: faction2_spritesheet_1
+      rect:
+        serializedVersion: 2
+        x: 18
+        y: 130
+        width: 35
+        height: 61
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 3c990291ebb33b447a2aef609c502498
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: faction2_spritesheet_2
+      rect:
+        serializedVersion: 2
+        x: 84
+        y: 192
+        width: 28
+        height: 56
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 1cbde54babe30b54685c42ded63489f8
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: faction2_spritesheet_3
+      rect:
+        serializedVersion: 2
+        x: 150
+        y: 192
+        width: 34
+        height: 56
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 799dd6f468597714fa33e7bba234ff57
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: faction2_spritesheet_4
+      rect:
+        serializedVersion: 2
+        x: 192
+        y: 216
+        width: 40
+        height: 14
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 12a2e8e4b561dad4a827ff33461dcd2f
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: faction2_spritesheet_5
+      rect:
+        serializedVersion: 2
+        x: 208
+        y: 202
+        width: 22
+        height: 10
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 7848c9d08de312047afac729c77d1762
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: faction2_spritesheet_6
+      rect:
+        serializedVersion: 2
+        x: 57
+        y: 164
+        width: 34
+        height: 12
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 2becdf95484f37241a41b0969c72d3cc
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: faction2_spritesheet_7
+      rect:
+        serializedVersion: 2
+        x: 138
+        y: 127
+        width: 31
+        height: 53
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: faf9a389962dbd04ab4a3ddf5cecd8c4
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline:
+    - - {x: 15, y: 54}
+      - {x: 11, y: 48}
+      - {x: 8, y: 30}
+      - {x: 8, y: 3}
+      - {x: 10, y: -3}
+      - {x: 40, y: -3}
+      - {x: 43, y: 10}
+      - {x: 43, y: 52}
+      - {x: 37, y: 54}
+    - - {x: -105, y: 64}
+      - {x: -112, y: 48}
+      - {x: -112, y: 2}
+      - {x: -110, y: 0}
+      - {x: -76, y: 0}
+      - {x: -76, y: 63}
+      - {x: -78, y: 64}
+    - - {x: -41, y: 50}
+      - {x: -73, y: 50}
+      - {x: -73, y: 34}
+      - {x: -38, y: 34}
+      - {x: -35, y: 40}
+      - {x: -35, y: 44}
+      - {x: -36, y: 46}
+    - - {x: -68, y: 128}
+      - {x: -68, y: 64}
+      - {x: -66, y: 62}
+      - {x: -64, y: 62}
+      - {x: -62, y: 64}
+      - {x: -62, y: 128}
+    - - {x: -43, y: 122}
+      - {x: -46, y: 115}
+      - {x: -46, y: 70}
+      - {x: -43, y: 62}
+      - {x: -15, y: 62}
+      - {x: -14, y: 64}
+      - {x: -14, y: 122}
+    - - {x: 22, y: 122}
+      - {x: 20, y: 117}
+      - {x: 20, y: 64}
+      - {x: 21, y: 62}
+      - {x: 53, y: 62}
+      - {x: 58, y: 69}
+      - {x: 58, y: 109}
+      - {x: 50, y: 122}
+    - - {x: -78, y: 109}
+      - {x: -79, y: 118}
+      - {x: -91, y: 126}
+      - {x: -108, y: 126}
+      - {x: -112, y: 125}
+      - {x: -112, y: 64}
+      - {x: -81, y: 64}
+      - {x: -78, y: 65}
+      - {x: -81, y: 73}
+      - {x: -78, y: 86}
+    - - {x: 78, y: 86}
+      - {x: 78, y: 76}
+      - {x: 79, y: 73}
+      - {x: 80, y: 72}
+      - {x: 91, y: 72}
+      - {x: 103, y: 75}
+      - {x: 104, y: 76}
+      - {x: 104, y: 82}
+      - {x: 101, y: 86}
+    - - {x: 85, y: 104}
+      - {x: 62, y: 100}
+      - {x: 62, y: 90}
+      - {x: 64, y: 86}
+      - {x: 102, y: 86}
+      - {x: 106, y: 93}
+      - {x: 106, y: 101}
+      - {x: 102, y: 104}
+    physicsShape: []
+    bones: []
+    spriteID: 7c87b7b4c1042e34092d61373bdba839
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+  spritePackingTag: 
+  pSDRemoveMatte: 0
+  pSDShowRemoveMatteOption: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

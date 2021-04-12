@@ -96,6 +96,7 @@ GameObject:
   - component: {fileID: 50049626946033520}
   - component: {fileID: 114593781173747584}
   - component: {fileID: 114685187375238876}
+  - component: {fileID: 852640988}
   m_Layer: 8
   m_Name: Player_Soldier
   m_TagString: Untagged
@@ -112,7 +113,7 @@ Transform:
   m_GameObject: {fileID: 1183556278400546}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: -188.9, y: -395.7, z: 0}
-  m_LocalScale: {x: 4.52, y: 4.22, z: 1.257102}
+  m_LocalScale: {x: 6, y: 6, z: 1.257102}
   m_Children:
   - {fileID: 224462695797935526}
   - {fileID: 4586573204305350}
@@ -156,7 +157,7 @@ SpriteRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 10
-  m_Sprite: {fileID: 21300004, guid: d41cf9b8613a5484d8e8613ad0f1ea01, type: 3}
+  m_Sprite: {fileID: 21300014, guid: fd17370762c9e45429e8bc9ab36a71dd, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -184,7 +185,7 @@ BoxCollider2D:
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
     pivot: {x: 0.5, y: 0.5}
-    oldSize: {x: 0.28, y: 0.56}
+    oldSize: {x: 0.31, y: 0.53}
     newSize: {x: 1.63, y: 1.34}
     adaptiveTilingThreshold: 0.5
     drawMode: 0
@@ -228,6 +229,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   overheadtext: {fileID: 114807654681588628}
   MoveSpeed: 10
+  isGrounded: 1
   facing: 2
   standingOn: {fileID: 0}
   Health: 50000
@@ -266,6 +268,25 @@ MonoBehaviour:
   ItemList: []
   MaxItemSlots: 20
   ToolBarList: []
+--- !u!95 &852640988
+Animator:
+  serializedVersion: 3
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1183556278400546}
+  m_Enabled: 1
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: b5dc569a656119242937deca9ef50e3d, type: 2}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorControllerStateOnDisable: 0
 --- !u!1 &1309499048357032
 GameObject:
   m_ObjectHideFlags: 0
@@ -304,7 +325,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
   m_AnchoredPosition: {x: 0.043, y: 0.551}
-  m_SizeDelta: {x: 312.212, y: 157.055}
+  m_SizeDelta: {x: 302.85, y: 157.055}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!223 &223246504629660202
 Canvas:

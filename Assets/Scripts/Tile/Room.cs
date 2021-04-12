@@ -83,7 +83,7 @@ public class Room : MonoBehaviour {
             this.GetComponent<Room>().Type = RoomType.Normal;
             roomLayout = Instantiate(Floor.CurrentFloor.RoomLayout, this.transform.position, Quaternion.identity);
             roomLayout.transform.parent = transform;
-            roomLayout.transform.localPosition = new Vector2(-89.1f, 11.6f); //found by moving layout in editor while paused 
+            roomLayout.transform.localPosition = new Vector2(-88.0f, -8.0f); //found by moving layout in editor while paused 
         }
          
 
