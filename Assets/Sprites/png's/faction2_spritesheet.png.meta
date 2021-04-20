@@ -68,10 +68,10 @@ TextureImporter:
   platformSettings:
   - serializedVersion: 2
     buildTarget: DefaultTexturePlatform
-    maxTextureSize: 2048
+    maxTextureSize: 8192
     resizeAlgorithm: 0
     textureFormat: -1
-    textureCompression: 1
+    textureCompression: 2
     compressionQuality: 50
     crunchedCompression: 0
     allowsAlphaSplitting: 0
@@ -85,17 +85,17 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 18
-        y: 193
+        y: 194
         width: 30
         height: 58
       alignment: 0
-      pivot: {x: 0.5, y: 0.5}
+      pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 02a8eac5f60cc1f4194034d8229e3e92
+      spriteID: 555abe4fcf8281744a291f65a764b21c
       vertices: []
       indices: 
       edges: []
@@ -106,16 +106,16 @@ TextureImporter:
         serializedVersion: 2
         x: 18
         y: 130
-        width: 35
-        height: 61
+        width: 46
+        height: 126
       alignment: 0
-      pivot: {x: 0.5, y: 0.5}
+      pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 3c990291ebb33b447a2aef609c502498
+      spriteID: 112f97ee6db14ee40ac5dbba47e2de61
       vertices: []
       indices: 
       edges: []
@@ -129,13 +129,13 @@ TextureImporter:
         width: 28
         height: 56
       alignment: 0
-      pivot: {x: 0.5, y: 0.5}
+      pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 1cbde54babe30b54685c42ded63489f8
+      spriteID: b5c88332a5f8a4f4c956858f8b535c98
       vertices: []
       indices: 
       edges: []
@@ -144,18 +144,18 @@ TextureImporter:
       name: faction2_spritesheet_3
       rect:
         serializedVersion: 2
-        x: 150
-        y: 192
-        width: 34
-        height: 56
+        x: 137
+        y: 189
+        width: 47
+        height: 59
       alignment: 0
-      pivot: {x: 0.5, y: 0.5}
+      pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 799dd6f468597714fa33e7bba234ff57
+      spriteID: 510b118113271864783cd5a4598b603f
       vertices: []
       indices: 
       edges: []
@@ -169,13 +169,13 @@ TextureImporter:
         width: 40
         height: 14
       alignment: 0
-      pivot: {x: 0.5, y: 0.5}
+      pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 12a2e8e4b561dad4a827ff33461dcd2f
+      spriteID: 3267f7bc8f5b6094196fbddf9dff1c6e
       vertices: []
       indices: 
       edges: []
@@ -189,13 +189,13 @@ TextureImporter:
         width: 22
         height: 10
       alignment: 0
-      pivot: {x: 0.5, y: 0.5}
+      pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 7848c9d08de312047afac729c77d1762
+      spriteID: 890e7e8f6ad3f874e87a68ca9f21f1c5
       vertices: []
       indices: 
       edges: []
@@ -209,13 +209,13 @@ TextureImporter:
         width: 34
         height: 12
       alignment: 0
-      pivot: {x: 0.5, y: 0.5}
+      pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 2becdf95484f37241a41b0969c72d3cc
+      spriteID: f4fea6201bd8e3c4fae2f702a0ee5a67
       vertices: []
       indices: 
       edges: []
@@ -224,18 +224,18 @@ TextureImporter:
       name: faction2_spritesheet_7
       rect:
         serializedVersion: 2
-        x: 138
-        y: 127
+        x: 149
+        y: 130
         width: 31
         height: 53
       alignment: 0
-      pivot: {x: 0.5, y: 0.5}
+      pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: faf9a389962dbd04ab4a3ddf5cecd8c4
+      spriteID: e53d9462fdd549b4f95aecb58dfb51ec
       vertices: []
       indices: 
       edges: []

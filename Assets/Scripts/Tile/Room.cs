@@ -63,6 +63,7 @@ public class Room : MonoBehaviour {
         GameObject roomLayout;
 
         //******SET ROOM TYPE******
+        var random = new System.Random();//used to pull random layout from list of possible layouts 
         if (Floor.CurrentFloor.EngineZones.Contains(LocalPosition))
         {
             this.Type = RoomType.Engine;
@@ -81,7 +82,8 @@ public class Room : MonoBehaviour {
         else
         {
             this.GetComponent<Room>().Type = RoomType.Normal;
-            roomLayout = Instantiate(Floor.CurrentFloor.RoomLayout, this.transform.position, Quaternion.identity);
+            int randomIndex = random.Next(Floor.CurrentFloor.NormalRoomLayouts.Count);
+            roomLayout = Instantiate(Floor.CurrentFloor.NormalRoomLayouts[randomIndex], this.transform.position, Quaternion.identity);
             roomLayout.transform.parent = transform;
             roomLayout.transform.localPosition = new Vector2(-88.0f, -8.0f); //found by moving layout in editor while paused 
         }

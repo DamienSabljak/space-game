@@ -21,7 +21,7 @@ public class Floor : MonoBehaviour {
     [SerializeField] public GameObject TestRoom;//used for testing
     [SerializeField] public bool SpecialRoomsMustBeConnected;
 
-    [Header("ZoneTiles")]  
+    [Header("ZoneTiles")]  //determines which tiles in zone tilemap correspond to which zones 
     [SerializeField] public Tile NormalZoneTile;
     [SerializeField] public Tile StartingZoneTile;
     [SerializeField] public Tile ConnectingZoneTile;
@@ -35,8 +35,8 @@ public class Floor : MonoBehaviour {
     [SerializeField] public float Yoffset=0;
     [SerializeField] List<GameObject> NormalRoomTypes;
 
-    [Header("Room Layouts")]
-    [SerializeField] public GameObject RoomLayout;
+    [Header("Room Layouts")]//prefabs to room layouts 
+    [SerializeField] public List<GameObject> NormalRoomLayouts;
     [SerializeField] public GameObject EngineRoomLayout;
     [SerializeField] public GameObject BridgeRoomLayout;
 
@@ -118,8 +118,6 @@ public class Floor : MonoBehaviour {
     public void RandomlyGenerateRoom(Vector3Int RoomPosition, int EnteringFrom, Room.BranchType EnteringType)
     {
         //wait for initial loading of rooms
-        
-
         //Entering from will hold value of direction needed to be open from recursive call
         //0 == FIRSTROOM //1 = UP //2 = RIGHT //3 = DOWN //4 = LEFT
         if (NumRooms >= 0)

@@ -7,18 +7,28 @@ public class Character : MonoBehaviour {
     [SerializeField] public float MoveSpeed = 10f;
 
     public enum direction { LEFT, RIGHT, UP, DOWN };
+    public enum State { IDLE, CHASING, ATTACKING };//states used in state machines 
+    public State currentState;
     public bool isGrounded = true;
     public direction facing = direction.RIGHT;
     [HideInInspector] public Interactable standingOn;//holds info on what field character is standing in
 
     // Use this for initialization
     void Start () {
-
+        currentState = State.IDLE;
 	}
 	
 	// Update is called once per frame
 	void Update () {
-		
+        //face facing direction driven by astar pathfinder 
+		if(facing == direction.LEFT && transform.localScale.x >0)
+        {
+            transform.localScale = new Vector3(-1*transform.localScale.x, transform.localScale.y, transform.localScale.z);
+        }
+        else if(facing == direction.RIGHT && transform.localScale.x < 0)
+        {
+            transform.localScale = new Vector3(-1 * transform.localScale.x, transform.localScale.y, transform.localScale.z);
+        }
 	}
 
     //To Add - method arguments for different colours

@@ -33,7 +33,10 @@ public class AStarPathfinder : MonoBehaviour
         seeker.StartPath(transform.position, targetPosition, OnPathComplete);
         speed = gameObject.GetComponent<Character>().MoveSpeed;
     }
-
+    public void StopMoving()
+    {
+        path = null;
+    }
 
     public void OnPathComplete(Path p)
     {
@@ -59,8 +62,17 @@ public class AStarPathfinder : MonoBehaviour
         }
         //Direction to the next waypoint
         float deltaMove = speed * Time.deltaTime;
+        float last_x = transform.position.x;
         transform.position = Vector2.MoveTowards(transform.position, path.vectorPath[currentWaypoint], deltaMove);
-
+        float new_x = transform.position.x;
+        if (new_x - last_x < 0)
+        {
+            GetComponent<Character>().facing = Character.direction.LEFT;
+        }
+        else if (new_x - last_x < 0)
+        {
+            GetComponent<Character>().facing = Character.direction.RIGHT;
+        }
         if (transform.position == path.vectorPath[currentWaypoint])
         {
             currentWaypoint++;

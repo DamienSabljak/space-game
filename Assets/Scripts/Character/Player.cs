@@ -99,9 +99,19 @@ public class Player : Character {
     {
         if(isGrounded)
         {
+            //get player input
             Rigidbody2D body = gameObject.GetComponent<Rigidbody2D>();
             var deltaX = Input.GetAxis("Horizontal") * Time.deltaTime * MoveSpeed;
             var deltaY = Input.GetAxis("Vertical") * Time.deltaTime * MoveSpeed;
+            //set animations
+            if(Input.GetAxis("Horizontal") != 0 || Input.GetAxis("Vertical") != 0)
+            {
+                GetComponent<Animator>().SetBool("walking", true);
+            }
+            else
+            {
+                GetComponent<Animator>().SetBool("walking", false);
+            }
 
             //set new facing
             if (deltaY > 0)

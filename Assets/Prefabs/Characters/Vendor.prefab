@@ -30,7 +30,7 @@ Transform:
   m_GameObject: {fileID: 1930468429032114}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 13.140015, y: -2.0099945, z: 0}
-  m_LocalScale: {x: 4.5796223, y: 4.514253, z: 1.257102}
+  m_LocalScale: {x: 10, y: 10, z: 1.257102}
   m_Children:
   - {fileID: 4119717548109140}
   m_Father: {fileID: 0}
@@ -145,9 +145,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   overheadtext: {fileID: 0}
   MoveSpeed: 10
+  isGrounded: 1
   facing: 0
   standingOn: {fileID: 0}
+  possibleItems: []
   availableItems: []
+  Customer: {fileID: 0}
   CustomerInv: {fileID: 0}
   VendorInv: {fileID: 0}
   ConsumablesCostArr: 
