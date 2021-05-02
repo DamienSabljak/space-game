@@ -21,15 +21,20 @@ public class Character : MonoBehaviour {
 	// Update is called once per frame
 	void Update () {
         //face facing direction driven by astar pathfinder 
-		if(facing == direction.LEFT && transform.localScale.x >0)
-        {
-            transform.localScale = new Vector3(-1*transform.localScale.x, transform.localScale.y, transform.localScale.z);
-        }
-        else if(facing == direction.RIGHT && transform.localScale.x < 0)
+        SetScaleByFacing();
+	}
+
+    public void SetScaleByFacing()
+    {   //sets the direction the char faces by changing the scale_x property 
+        if (facing == direction.LEFT && transform.localScale.x > 0)
         {
             transform.localScale = new Vector3(-1 * transform.localScale.x, transform.localScale.y, transform.localScale.z);
         }
-	}
+        else if (facing == direction.RIGHT && transform.localScale.x < 0)
+        {
+            transform.localScale = new Vector3(-1 * transform.localScale.x, transform.localScale.y, transform.localScale.z);
+        }
+    }
 
     //To Add - method arguments for different colours
     public IEnumerator FlashColour()

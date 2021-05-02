@@ -8,6 +8,7 @@ public class Enemy : Character {
     [SerializeField] int health = 100;
     [Header("AI")]
     [SerializeField] float FiringFieldMargin=0.1f;//how much furhter into the field to go for effective fire 
+    [SerializeField] GameObject armsGroup; //refference to arms GROUP for animation
     [Header("Projectile")]
     [SerializeField] GameObject projectile;
     [SerializeField] float projSpeed = 5f;
@@ -39,9 +40,17 @@ public class Enemy : Character {
     }
 
     void Update()
-    {   
+    {
+        currentTarget = Level.CurrentLevel.currentPlayer.gameObject;
+        SetScaleByFacing();
+        UpdateEngagementStateMachine();
+    }
+
+    //****STATE MACHINES****
+    private void UpdateEngagementStateMachine()
+    {
         //see state machine block diagram 
-        if(currentState == State.IDLE)
+        if (currentState == State.IDLE)
         {
             StopMoving();
             //check transitions to other states 
@@ -52,22 +61,23 @@ public class Enemy : Character {
                     TargetLastKnownPosition = currentTarget.transform.position;
                     currentState = State.CHASING;
                 }
-                else if(TargetWithinFiringField)
+                else if (TargetWithinFiringField)
                 {
                     TargetLastKnownPosition = currentTarget.transform.position;
                     currentState = State.ATTACKING;
                 }
             }
         }
-        else if(currentState == State.CHASING)
+        else if (currentState == State.CHASING)
         {
             MoveTo(TargetLastKnownPosition);
             //check transitions to other states
             if (HasLineOfSight(currentTarget.transform))
             {
+                RotateArms(currentTarget.transform.position);//rotate arms to point weapon at target
                 //Debug.Log("new path being created...");
                 if (TargetWithinFiringField)
-                { 
+                {
                     //transition to attacking 
                     TargetLastKnownPosition = currentTarget.transform.position;
                     currentState = State.ATTACKING;
@@ -77,7 +87,7 @@ public class Enemy : Character {
                     TargetLastKnownPosition = currentTarget.transform.position;
                 }
             }
-            if(Vector3.Magnitude(TargetLastKnownPosition - transform.position) < 2f)
+            if (Vector3.Magnitude(TargetLastKnownPosition - transform.position) < 2f)
             {//reached last known position
                 currentState = State.IDLE;
             }
@@ -88,18 +98,20 @@ public class Enemy : Character {
             if (HasLineOfSight(currentTarget.transform) && TargetWithinFiringField)
             {
                 TargetLastKnownPosition = currentTarget.transform.position;
+                RotateArms(currentTarget.transform.position);//rotate arms to point weapon at target
                 CountAndShootAt(currentTarget.transform);
             }
             else if (!HasLineOfSight(currentTarget.transform) || !TargetWithinFiringField)
             {
                 currentState = State.CHASING;
             }
-        }       
+        }
     }
     //****COMBAT****
 
     public void CountAndShootAt(Transform position)
     {
+        //count down and shoot
         shotCounter -= Time.deltaTime;
         if(shotCounter <= 0f)
         {
@@ -129,6 +141,38 @@ public class Enemy : Character {
         AudioSource.PlayClipAtPoint(fireSFX, Camera.main.transform.position, fireSFXVol);
     }
 
+    private void RotateArms(Vector3 TargetPos)
+    {   //rotate arms and weapon to face where mouse is looking 
+        
+        Vector3 WeaponDir = TargetPos - transform.position;//vector from this to target to point at 
+        float angle = Vector3.Angle(new Vector3(1, 0, 0), WeaponDir);//take angle relative to positive x axis, only from 0-180 deg
+        if (WeaponDir.y < 0)
+        {
+            angle *= -1; //compensate for lost information from "arctan" 
+        }
+        if (Mathf.Abs(angle) > 90)
+        {
+            facing = direction.LEFT;
+            angle += 180;
+        }
+        else
+        {
+            facing = direction.RIGHT;
+        }
+        //arms.transform.Rotate(0, 0, angle);
+        armsGroup.transform.eulerAngles = new Vector3(0.0f, 0.0f, angle);
+    }
+    private void ResetArmRotation()
+    {   //not tested 
+        if(facing == direction.RIGHT)
+        {
+            RotateArms(new Vector3(transform.position.x + 1, transform.position.y, transform.position.z));
+        }
+        if (facing == direction.RIGHT)
+        {
+            RotateArms(new Vector3(transform.position.x - 1, transform.position.y, transform.position.z));
+        }
+    }
     //****COLLISIONS****
     private void OnTriggerEnter2D(Collider2D other)
     {

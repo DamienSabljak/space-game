@@ -10,6 +10,8 @@ public class Player : Character {
     [SerializeField] public float Health = 100f;
     
     [SerializeField] float padding =1f;//distance from camera allowed when camera static
+    [SerializeField] GameObject armsgroup;//refference to arms GROUP not just sprite 
+    [SerializeField] GameObject weaponSprite;//sprite refference to weapon for animation
     [Header("Projectile")]
     [SerializeField] GameObject CurrentToolBarItem;//MAKE SURE declared gameobject to use general prefab
     [SerializeField] GameObject projectile;
@@ -63,12 +65,14 @@ public class Player : Character {
         if (Level.pause != true)
         {
             Move();
+            SetScaleByFacing();
             Fire();
             Interact();
             SelectToolBarItem();
             overheadtext.dispStandingOn();
             if(ShiftCameraEnabled && Time.timeScale != 0)
             ShiftCamera();
+            RotateArms();//must be after shift camera, causes glitches 
             UpdateModifiers();
 
             LevelManager.PlayerScore = this.inventory.consumableArr[(int) Consumable.Type.scrap] + this.inventory.consumableArr[(int)Consumable.Type.money];
@@ -114,14 +118,14 @@ public class Player : Character {
             }
 
             //set new facing
-            if (deltaY > 0)
-                facing = direction.UP;
-            else if (deltaY < 0)
-                facing = direction.DOWN;
-            if (deltaX > 0)
-                facing = direction.RIGHT;
-            else if (deltaX < 0)
-                facing = direction.LEFT;
+            //if (deltaY > 0)
+                //facing = direction.UP;
+            //else if (deltaY < 0)
+                //facing = direction.DOWN;
+            //if (deltaX > 0)
+                //facing = direction.RIGHT;
+           // else if (deltaX < 0)
+                //facing = direction.LEFT;
 
             // var newXPos = Mathf.Clamp(transform.position.x + deltaX,xMin,xMax);//use with setupboundaries
             // var newYPos = Mathf.Clamp(transform.position.y + deltaY,yMin,yMax);
@@ -131,6 +135,33 @@ public class Player : Character {
             body.MovePosition(new Vector2(newXPos, newYPos));
         }
         
+    }
+
+    private void RotateArms()
+    {   //rotate arms and weapon to face where mouse is looking 
+        Vector3 mousePos = Input.mousePosition;
+        //compensate for weird error with negative scale causing camera jump
+        if (facing == direction.LEFT)
+        {
+            mousePos = new Vector3(-1 * mousePos.x, mousePos.y, mousePos.z);
+        }
+        Vector3 mouseDir = Camera.main.ScreenToWorldPoint(Input.mousePosition) - transform.position;//vector from player to mouse
+        float angle = Vector3.Angle(new Vector3(1, 0, 0), mouseDir);//take angle relative to positive x axis, only from 0-180 deg
+        if(mouseDir.y < 0)
+        {
+            angle *= -1; //compensate for lost information from "arctan" 
+        }
+        if(Mathf.Abs(angle) > 90 )
+        {
+            facing = direction.LEFT;
+            angle += 180; 
+        }
+        else
+        {
+            facing = direction.RIGHT;
+        }
+        //arms.transform.Rotate(0, 0, angle);
+        armsgroup.transform.eulerAngles = new Vector3(0.0f, 0.0f, angle);
     }
 
     private void Interact()
@@ -150,9 +181,15 @@ public class Player : Character {
 
     
     private void ShiftCamera()
-    {//Shifts camera based on mouse posiion
+    {   //Shifts camera based on mouse posiion
         Transform cameraPos = transform.Find("Main Camera");
-        cameraPos.localPosition = (Input.mousePosition - new Vector3(-1.6f,-1.6f))*CameraShiftScale;
+        Vector3 mousePos = Input.mousePosition;
+        //compensate for weird error with negative scale causing camera jump
+        if (facing == direction.LEFT)
+        {
+            mousePos = new Vector3(-1*mousePos.x, mousePos.y, mousePos.z);
+        }
+        cameraPos.localPosition = (mousePos - new Vector3(-1.6f,-1.6f))*CameraShiftScale;
     }
 
     private void SelectToolBarItem()
@@ -179,21 +216,22 @@ public class Player : Character {
     {//helper method used in method above
         Debug.Log("hotkey " +((int) index+1)+ " selected");
         if (inventory.ToolBarList[index] == CurrentToolBarItem)
-        {
-            //intentionally do nothing
+        {   //item already equipped
+            //intentionally do nothing, already equipped
         }
         else if (inventory.ToolBarList[index] == null)
-        {
+        {   //equip nothing
             //deactivate old item
             if (CurrentToolBarItem != null)
             {
                 Debug.Log("deactivate " + CurrentToolBarItem);
                 CurrentToolBarItem.gameObject.SetActive(false);
+                weaponSprite.GetComponent<SpriteRenderer>().sprite = null;
             }
             CurrentToolBarItem = null;
         }
         else //replace with new item
-        {
+        {   //equip new item 
             //deactivate old item
             if (CurrentToolBarItem != null)
             {
@@ -202,7 +240,9 @@ public class Player : Character {
             }
             //activate new item
             CurrentToolBarItem = inventory.ToolBarList[index].gameObject;
-            CurrentToolBarItem.gameObject.SetActive(true);
+            CurrentToolBarItem.gameObject.SetActive(true);//set item active
+            weaponSprite.GetComponent<SpriteRenderer>().sprite = CurrentToolBarItem.GetComponent<SpriteRenderer>().sprite;//render sprite in weapon game object
+            CurrentToolBarItem.GetComponent<SpriteRenderer>().enabled = false;//deactivate item sprite (only weapon sprite should be seen) 
             UpdateCurrentToolBarItem();//set parent refference for weapon script
         }
     }
