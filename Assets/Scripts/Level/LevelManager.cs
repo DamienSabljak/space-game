@@ -16,6 +16,10 @@ public class LevelManager : MonoBehaviour
     }
     void Start()
     {
+        if(player != null)
+        {
+            Level.CurrentLevel.currentPlayer = player;//give reference to non destroyed player 
+        }
         
     }
     public static void LoadGame()

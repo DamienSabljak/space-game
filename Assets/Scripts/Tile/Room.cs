@@ -30,11 +30,17 @@ public class Room : MonoBehaviour {
     {
         InitBranchEnterArr();
 
+        
+        
+        
+        //old method
+        /*
         if (EnableGeneration)
         {
             //Debug.Log("Random Generation Started...");
             StartCoroutine(CreateSurroundingRooms());
         }
+        */
         StartCoroutine(SetRoomLayout());
     }
 
