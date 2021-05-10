@@ -336,6 +336,12 @@
     <Reference Include="Pathfinding.Ionic.Zip.Reduced">
       <HintPath>C:/Users/damie/OneDrive/Documents/Hobby Stuff/UnityProjects/space-game/Assets/AstarPathfindingProject/Plugins/DotNetZip/Pathfinding.Ionic.Zip.Reduced.dll</HintPath>
     </Reference>
+    <Reference Include="Mono.Data.Sqlite">
+      <HintPath>C:/Users/damie/OneDrive/Documents/Hobby Stuff/UnityProjects/space-game/Assets/Plugins/sqlite-unity-plugin-master/sqlite-unity-plugin-master/Plugins/Mono.Data.Sqlite.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Data">
+      <HintPath>C:/Users/damie/OneDrive/Documents/Hobby Stuff/UnityProjects/space-game/Assets/Plugins/sqlite-unity-plugin-master/sqlite-unity-plugin-master/Plugins/System.Data.dll</HintPath>
+    </Reference>
     <Reference Include="UnityEngine.Advertisements.Editor">
       <HintPath>C:/Users/damie/OneDrive/Documents/Hobby Stuff/UnityProjects/space-game/Assets/UnityAds/UnityEngine.Advertisements.Editor.dll</HintPath>
     </Reference>

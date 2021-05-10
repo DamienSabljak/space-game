@@ -4,13 +4,15 @@ using System.Collections.Generic;
 using UnityEngine;
 
 public class Room : MonoBehaviour {
+    [SerializeField] public GameObject interiorGrid;//reference to interior grid object 
     [SerializeField] public BranchType UPBranch;
     [SerializeField] public BranchType RIGHTBranch;
     [SerializeField] public BranchType DOWNBranch;
     [SerializeField] public BranchType LEFTBranch;
     [SerializeField] public RoomType   Type;
     public Vector3Int LocalPosition = new Vector3Int(99, 99, 99);//holds room's local position in zones tilemap, 99's so it doesnt mess with generation code
-    [SerializeField] public bool EnableGeneration = false;
+    [SerializeField] public bool EnableGeneration = false;//old, needs to be removed 
+    public bool RoomWasGenerated = false;//used to determine which rooms are a part of floor generation for FindRoomAtZone() method 
     //Static information
     [HideInInspector] public BranchType[] BranchEnterArr;//array about requested entrance information
     public static float[] RoomLocalBounds = {-86.32f,-60.32f, -36.4f, 15.6f};//Gives minX,maxX, minY,maxY coordinates of room for random spawning purposes (with some margin)
@@ -41,7 +43,7 @@ public class Room : MonoBehaviour {
             StartCoroutine(CreateSurroundingRooms());
         }
         */
-        StartCoroutine(SetRoomLayout());
+        //StartCoroutine(SetRoomLayout());
     }
 
     public void InitBranchEnterArr()
@@ -98,69 +100,6 @@ public class Room : MonoBehaviour {
         
     }
 
-    //**ROOM GENERATION AND CHANGES**
-    private IEnumerator CreateSurroundingRooms()
-    {
-        if (Floor.CurrentFloor == null)
-            yield return new WaitForSeconds(1);//wait for current level to load
-
-        //UP
-        Vector3Int newPosition = new Vector3Int(LocalPosition.x, LocalPosition.y + 1, LocalPosition.z);
-        //check if current room has opening //and if the next spot is within grid //and if a room isnt already made
-        if (UPBranch == Room.BranchType.Hallway1 && Floor.CurrentFloor.tileCoordinates.Contains(newPosition) && !Floor.CurrentFloor.OccupiedCoordinates.Contains(newPosition))
-        {           
-            //Debug.Log("UP expand ");
-            Floor.CurrentFloor.RandomlyGenerateRoom(newPosition, 1,UPBranch);
-        }
-        //RIGHT
-        newPosition = new Vector3Int(LocalPosition.x + 1, LocalPosition.y, LocalPosition.z);
-        if (RIGHTBranch == Room.BranchType.Hallway1 && Floor.CurrentFloor.tileCoordinates.Contains(newPosition) && !Floor.CurrentFloor.OccupiedCoordinates.Contains(newPosition))
-        {
-            //Debug.Log("RIGHT expand");
-            Floor.CurrentFloor.RandomlyGenerateRoom(newPosition, 2, RIGHTBranch);
-        }
-        //DOWN
-        newPosition = new Vector3Int(LocalPosition.x, LocalPosition.y - 1, LocalPosition.z);
-        if (DOWNBranch == Room.BranchType.Hallway1 && Floor.CurrentFloor.tileCoordinates.Contains(newPosition) && !Floor.CurrentFloor.OccupiedCoordinates.Contains(newPosition))
-        {
-            //Debug.Log("DOWN expand");
-            Floor.CurrentFloor.RandomlyGenerateRoom(newPosition, 3,DOWNBranch);
-        }
-        //LEFT
-        newPosition = new Vector3Int(LocalPosition.x - 1, LocalPosition.y, LocalPosition.z);
-        if (LEFTBranch == Room.BranchType.Hallway1 && Floor.CurrentFloor.tileCoordinates.Contains(newPosition) && !Floor.CurrentFloor.OccupiedCoordinates.Contains(newPosition))
-        {
-            //Debug.Log("LEFT expand");
-            Floor.CurrentFloor.RandomlyGenerateRoom(newPosition, 4,LEFTBranch);
-        }
-    }
-
-    //method to instantiate a new room to avoid errors such as no localposition set
-    public static GameObject CreateRoom(BranchType U, BranchType R, BranchType D, BranchType L,Vector3Int newPosition)
-    {
-        //Find and load requested room
-        String roomname = "Room";
-        roomname += returnstringcase(U, 0);
-        roomname += returnstringcase(R, 1);
-        roomname += returnstringcase(D, 2);
-        roomname += returnstringcase(L, 3);
-
-        //Debug.Log("roomname: " + roomname);
-        GameObject newRoom = (GameObject)Resources.Load(roomname);
-        if (newRoom == null)
-            Debug.Log("WARNING: no floor with this name exists in the room resources folder, check spelling or create new room with requested name");
-
-        //instantiate room
-        GameObject r = Instantiate(newRoom, Floor.CurrentFloor.transform)
-                            as GameObject;
-        r.gameObject.transform.parent = Floor.CurrentFloor.RoomGrid.transform;//set parent to roomgrid for proper sizing
-        r.GetComponent<Room>().LocalPosition = newPosition;
-        r.GetComponent<Room>().EnableGeneration = false;//prevent spontaneous genaration
-        r.transform.position = (Vector2)Floor.CurrentFloor.ZonesTilemap.GetCellCenterWorld(newPosition) + new Vector2(Floor.CurrentFloor.Xoffset, Floor.CurrentFloor.Yoffset);//set room position to zone tile position
-
-        return r;
-    }
-
     //Changes selected room into desired room type
     public void ChangeRoom(BranchType U, BranchType R, BranchType D, BranchType L)
     {
@@ -182,7 +121,7 @@ public class Room : MonoBehaviour {
         r.gameObject.transform.parent = Floor.CurrentFloor.RoomGrid.transform;//set parent to roomgrid for proper sizing
         r.GetComponent<Room>().LocalPosition = LocalPosition;//pass on room position
         r.GetComponent<Room>().EnableGeneration = false;//prevent spontaneous genaration
-        r.transform.position = (Vector2)Floor.CurrentFloor.ZonesTilemap.GetCellCenterWorld(LocalPosition) + new Vector2(Floor.CurrentFloor.Xoffset, Floor.CurrentFloor.Yoffset);//set room position to zone tile position
+        r.transform.position = (Vector2)Floor.CurrentFloor.ZonesTilemap.GetCellCenterWorld(LocalPosition) + new Vector2(Floor.CurrentFloor.xoffset, Floor.CurrentFloor.yoffset);//set room position to zone tile position
         Destroy(gameObject);
     }
     //internal method used in change room branch
@@ -249,6 +188,71 @@ public class Room : MonoBehaviour {
 
 
     }
+    // **OLD METHODS
+    /*
+     * 
+     * //method to instantiate a new room to avoid errors such as no localposition set
+    public static GameObject CreateRoom(BranchType U, BranchType R, BranchType D, BranchType L,Vector3Int newPosition)
+    {
+        //Find and load requested room
+        String roomname = "Room";
+        roomname += returnstringcase(U, 0);
+        roomname += returnstringcase(R, 1);
+        roomname += returnstringcase(D, 2);
+        roomname += returnstringcase(L, 3);
+
+        //Debug.Log("roomname: " + roomname);
+        GameObject newRoom = (GameObject)Resources.Load(roomname);
+        if (newRoom == null)
+            Debug.Log("WARNING: no floor with this name exists in the room resources folder, check spelling or create new room with requested name");
+
+        //instantiate room
+        GameObject r = Instantiate(newRoom, Floor.CurrentFloor.transform)
+                            as GameObject;
+        r.gameObject.transform.parent = Floor.CurrentFloor.RoomGrid.transform;//set parent to roomgrid for proper sizing
+        r.GetComponent<Room>().LocalPosition = newPosition;
+        r.GetComponent<Room>().EnableGeneration = false;//prevent spontaneous genaration
+        r.transform.position = (Vector2)Floor.CurrentFloor.ZonesTilemap.GetCellCenterWorld(newPosition) + new Vector2(Floor.CurrentFloor.xoffset, Floor.CurrentFloor.yoffset);//set room position to zone tile position
+
+        return r;
+    }
+     * //**ROOM GENERATION AND CHANGES**
+    private IEnumerator CreateSurroundingRooms()
+    {
+        if (Floor.CurrentFloor == null)
+            yield return new WaitForSeconds(1);//wait for current level to load
+
+        //UP
+        Vector3Int newPosition = new Vector3Int(LocalPosition.x, LocalPosition.y + 1, LocalPosition.z);
+        //check if current room has opening //and if the next spot is within grid //and if a room isnt already made
+        if (UPBranch == Room.BranchType.Hallway1 && Floor.CurrentFloor.tileCoordinates.Contains(newPosition) && !Floor.CurrentFloor.OccupiedCoordinates.Contains(newPosition))
+        {           
+            //Debug.Log("UP expand ");
+            Floor.CurrentFloor.RandomlyGenerateRoom(newPosition, 1,UPBranch);
+        }
+        //RIGHT
+        newPosition = new Vector3Int(LocalPosition.x + 1, LocalPosition.y, LocalPosition.z);
+        if (RIGHTBranch == Room.BranchType.Hallway1 && Floor.CurrentFloor.tileCoordinates.Contains(newPosition) && !Floor.CurrentFloor.OccupiedCoordinates.Contains(newPosition))
+        {
+            //Debug.Log("RIGHT expand");
+            Floor.CurrentFloor.RandomlyGenerateRoom(newPosition, 2, RIGHTBranch);
+        }
+        //DOWN
+        newPosition = new Vector3Int(LocalPosition.x, LocalPosition.y - 1, LocalPosition.z);
+        if (DOWNBranch == Room.BranchType.Hallway1 && Floor.CurrentFloor.tileCoordinates.Contains(newPosition) && !Floor.CurrentFloor.OccupiedCoordinates.Contains(newPosition))
+        {
+            //Debug.Log("DOWN expand");
+            Floor.CurrentFloor.RandomlyGenerateRoom(newPosition, 3,DOWNBranch);
+        }
+        //LEFT
+        newPosition = new Vector3Int(LocalPosition.x - 1, LocalPosition.y, LocalPosition.z);
+        if (LEFTBranch == Room.BranchType.Hallway1 && Floor.CurrentFloor.tileCoordinates.Contains(newPosition) && !Floor.CurrentFloor.OccupiedCoordinates.Contains(newPosition))
+        {
+            //Debug.Log("LEFT expand");
+            Floor.CurrentFloor.RandomlyGenerateRoom(newPosition, 4,LEFTBranch);
+        }
+    }
+     */
 
 
 }

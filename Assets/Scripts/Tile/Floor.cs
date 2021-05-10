@@ -20,7 +20,6 @@ public class Floor : MonoBehaviour {
     [SerializeField] public GameObject FirstRoom;
     [SerializeField] public GameObject TestRoom;//used for testing
     [SerializeField] public bool SpecialRoomsMustBeConnected;
-
     [Header("ZoneTiles")]  //determines which tiles in zone tilemap correspond to which zones 
     [SerializeField] public Tile NormalZoneTile;
     [SerializeField] public Tile StartingZoneTile;
@@ -31,9 +30,10 @@ public class Floor : MonoBehaviour {
     //4)add if statement in initfloor() method 5) add if statmenet in Room class SetRoomLayout() Method 6) add zone enum in Room class Type enum...
     public int NumRooms = 100;//max number of rooms to be generated
     [HideInInspector] public Tilemap ZonesTilemap; //tilemap to hold zone tiles
-    [SerializeField] public float Xoffset=0;//used to offset room tiles uniformly
-    [SerializeField] public float Yoffset=0;
+    [SerializeField] public float xoffset=0;//used to offset room tiles uniformly
+    [SerializeField] public float yoffset=0;
     [SerializeField] List<GameObject> NormalRoomTypes;
+    [SerializeField] GameObject RoomPrefab;//reference to room prefab to be used to generate all rooms 
 
     [Header("Room Layouts")]//prefabs to room layouts 
     [SerializeField] public List<GameObject> NormalRoomLayouts;
@@ -49,8 +49,8 @@ public class Floor : MonoBehaviour {
     public List<Vector3Int> EngineZones = new List<Vector3Int>();
     public List<Vector3Int> BridgeZones = new List<Vector3Int>();
     private bool ReadyForNextConnectedZone = true;//used to space out corutines
-    public Vector3Int StartZoneLocation;//holds location of starting zone tile if placed
-
+    public Vector3Int firstRoom;//room adjacent to entrance, updated by TranslateFloor() method 
+    public BSPTree tree;
     
     // Use this for initialization
     void Start ()
@@ -58,8 +58,10 @@ public class Floor : MonoBehaviour {
         //NumRooms = LevelManager.currentLevelnum;//create 1 extra floor per level 
         RoomsHaveBeenGenerated = false;//reset for new scene loads
         ZonesTilemap = gameObject.GetComponent<Tilemap>();
-        GenerateFloor();
-        
+        int floorWidth = 20;//coordinate values will be from ([0,floorWidth],[0,floorheight])
+        int floorHeight = 10;
+        GenerateFloor(floorWidth, floorHeight);
+        DecorateFloor(floorWidth, floorHeight);
         //OLD CODE
         //InitFloor();
         //StartRoomGeneration();
@@ -71,37 +73,613 @@ public class Floor : MonoBehaviour {
     void Update () {
 		
 	}
-
-    private void StartRoomGeneration()
+    public Room FindRoomAtZone(Vector3Int coord)
     {
-        Room.BranchType h1 = Room.BranchType.Hallway1;
-        //if a starting tile is placed, start generation there
-        if (StartZoneLocation != null)
-            RandomlyGenerateRoom(StartZoneLocation,0, h1);
-        //otherwise start at center of grid
-        else
-        RandomlyGenerateRoom(tileCoordinates[tileCoordinates.Count / 2], 0,h1);//choose starting point for room generation
+        foreach(Transform room in RoomGrid.transform)
+        {   //cycle all rooms in RoomGrid Object 
+
+            if(room.gameObject.GetComponent<Room>() !=null && room.gameObject.GetComponent<Room>().RoomWasGenerated && room.gameObject.GetComponent<Room>().LocalPosition == coord)
+            {
+                //return room 
+                return room.GetComponent<Room>();
+            }
+        }
+        //if no room is there return null
+        //Debug.Log("WARNING: FindRoomAtZone() found no results"); //this is okay when method called in while loop to destroy all existing rooms
+        return null;
     }
 
-    private IEnumerator ConnectConnectedZones()
-    {
-        yield return new WaitForSeconds(2);//wait for room loading
+    private void GenerateFloor(int floorWidth, int floorHeight)
+    {   //use BSP based method to generate floor 
+        
+        int maxSplits = 5;
+        int minPartitionSize = 1;
+        int numThickIterations = 1;//adds extra rooms to thicken floor 
+        int maxThickRooms = 5;
+        tree = new BSPTree(floorWidth, floorHeight);
+        tree.GenerateTree(maxSplits, minPartitionSize);//partition floor into multiple split zones 
 
-        foreach (Vector3Int connectedzone in ConnectedZones)
+        //Debug.Log(tree.childNodes.Count);
+        //create a room in each region
+        for (int i = 0; i< tree.childNodes.Count ; i++)
         {
-            StartCoroutine(ConnectConnectedZone(connectedzone));
-            //wait for zone to be connected
-            while (!ReadyForNextConnectedZone)
-                yield return null;
-            yield return new WaitForSeconds(1);//wait for room loading
+            BSPNode child = tree.childNodes[i];
+            //Debug.Log(tree.childNodes.Count);
+            //Debug.Log("now generating room from each region");
+            //Debug.Log(child.RegionCoords[0]);
+            //Debug.Log(child.RegionCoords[1]);
+            GenerateRoomFromRegion(child);
+        }
+        //Debug.Log("occupied Zones:");
+        //Debug.Log(OccupiedCoordinates.Count);
+        //connect each room
+        //Debug.Log("now connecting rooms:");
+        RecurseConnectRooms(tree.headNode,floorWidth, floorHeight);
+        //Debug.Log("occupied Zones:");
+        //Debug.Log(OccupiedCoordinates.Count);
+        //add extra rooms to make floor less skinny
+        ThickenRooms(numThickIterations, maxThickRooms, floorWidth, floorHeight);
+
+        //instantiate all rooms
+        TranslateFloor();
+        CreateRoomAtAllOccupiedZones();
+        Debug.Log("floor generation complete");
+    }
+    
+    private void DecorateFloor(int floorWidth, int floorHeight)
+    {
+        Debug.Log("~~~~~starting floor decoration~~~~~");
+        gameObject.GetComponent<InteriorDecorator>().ConvertOccupiedZonesToImage(OccupiedCoordinates, floorWidth, floorHeight);
+        gameObject.GetComponent<InteriorDecorator>().DecorateFloor(tree.childNodes);
+        Debug.Log("~~~~~floor decoration complete ~~~~~");
+    }
+
+    private void TranslateFloor()
+    {//finds the lowest room in the floor and translates the floor such that it is in front of the entrance 
+        Vector2 offset = new Vector2(-1008.2f, -429.97f);//offset which aligned room coord 16,1
+        //room grid size is 72x72
+        //16*72 + b= -1008.2, b = -2160.2 (this should be x offset)
+        //1*72 + b = -429.97, b = -501.97
+        //find lowest room
+        Vector3Int lowestRoom = OccupiedCoordinates[0];
+        foreach (Vector3Int coord in OccupiedCoordinates)
+        {
+            if(coord.y < lowestRoom.y)
+            {
+                lowestRoom = coord;
+            }
+            firstRoom = lowestRoom;//update global reference for other methods 
+        }
+        Debug.Log("lowest room is:");
+        Debug.Log(lowestRoom);
+        //translate gride such that lowest room aligns with start room 
+        Vector3 newGridLocation = new Vector3(-1*lowestRoom.x*72 + xoffset, -1 * lowestRoom.y*72 + yoffset);
+        ZonesTilemap.transform.position = newGridLocation;
+    }
+    private void GenerateRoomFromRegion(BSPNode child)
+    {   //takes a defined region and creates a room inside of it
+        //currently only creates 1x1 rooms
+        //Debug.Log("generatingRoomFromRegion");
+        List<Vector2Int> region = child.RegionCoords;
+        int STARTCOORD = 0;
+        int ENDCOORD = 1;
+        //define random subset region within region 
+        int randPosx_1 = UnityEngine.Random.Range(region[STARTCOORD].x, region[ENDCOORD].x);
+        int randPosy_1 = UnityEngine.Random.Range(region[STARTCOORD].y, region[ENDCOORD].y);
+        int randPosx_2 = UnityEngine.Random.Range(randPosx_1, region[ENDCOORD].x);
+        int randPosy_2 = UnityEngine.Random.Range(randPosy_1, region[ENDCOORD].y);
+        //fill subset region with rooms
+        for(int x = randPosx_1; x<=randPosx_2;x++)
+        {
+            for (int y = randPosy_1; y <= randPosy_2; y++)
+            {
+                OccupiedCoordinates.Add(new Vector3Int(x, y, 0));
+            }
+        }
+        child.PopulatedRegionCoords.Add(new Vector2Int(randPosx_1, randPosy_1));
+        child.PopulatedRegionCoords.Add(new Vector2Int(randPosx_2, randPosy_2));
+        //Debug.Log("room generated with populated region:");
+        //Debug.Log(child.PopulatedRegionCoords[STARTCOORD]);
+        //Debug.Log(child.PopulatedRegionCoords[ENDCOORD]);
+        //GenerateRoom(new Vector3Int(randPosx, randPosy, 0)); //all coordinates from occupied zones will be instantiated
+    }
+    private bool ThickenRooms(int numIterations,int maxThickRooms, int maxWidth, int maxHeight)
+    {//adds extra rooms in empty spaces where there are two or more adjacent rooms 
+        //returns nothing, just to exit function
+        int remainingRooms = maxThickRooms;
+        for(int iter=0; iter<numIterations;iter++)
+        {
+            for (int x = 0; x <= maxWidth; x++)
+            {
+                for (int y = 0; y <= maxHeight; y++)
+                {
+                    if (!CoordIsOccupied(new Vector2Int(x, y)))
+                    {
+                        int numAdjacentRooms = 0;
+                        if (CoordIsOccupied(new Vector2Int(x + 1, y))) { numAdjacentRooms++; }
+                        if (CoordIsOccupied(new Vector2Int(x - 1, y))) { numAdjacentRooms++; }
+                        if (CoordIsOccupied(new Vector2Int(x, y + 1))) { numAdjacentRooms++; }
+                        if (CoordIsOccupied(new Vector2Int(x, y - 1))) { numAdjacentRooms++; }
+                        if (numAdjacentRooms >= 2)
+                        {
+                            OccupiedCoordinates.Add(new Vector3Int(x, y, 0));
+                            remainingRooms--;
+                        }
+                        if (remainingRooms <= 0)
+                        {
+                            return false;
+                        }
+
+                    }
+                }
+            }
+        }
+        return true;
+    }
+    private void RecurseConnectRooms(BSPNode node, int maxWidth, int maxHeight)
+    {//use recersive algorithm to connect rooms together 
+        if(node.childNodes != null && node.childNodes.Count > 0)
+        {
+            //Debug.Log("down left");
+            RecurseConnectRooms(node.childNodes[0], maxWidth, maxHeight);
+            //Debug.Log("down right");
+            RecurseConnectRooms(node.childNodes[1], maxWidth, maxHeight);
+            //Debug.Log("connect");
+            ConnectRegions(node.childNodes[0], node.childNodes[1], maxWidth, maxHeight);
         }
 
-        AstarPath.active.Scan();//updateNavMesh;
-        //*****ONLY START PLACING SPAWN CLUSTERS AFTER ROOMS ARE GENERATED******
-        spawnManager.PlaceScrapSpawnClusters();
-        RoomsHaveBeenGenerated = true;
     }
-    //connect generated floor to Connected zones (must be connected)
+    private void ConnectRegions(BSPNode child1, BSPNode child2, int maxWidth, int maxHeight)
+    {
+        //Debug.Log("connecting children at coordinates: (not shown)");
+        //Debug.Log(child1.PopulatedRegionCoords.Count);
+        //Debug.Log(child2.PopulatedRegionCoords.Count);
+        Debug.Log(child1.PopulatedRegionCoords[0]);
+        Debug.Log(child1.PopulatedRegionCoords[1]);
+        Debug.Log(child2.PopulatedRegionCoords[0]);
+        Debug.Log(child2.PopulatedRegionCoords[1]);
+        int STARTCOORD = 0;
+        int ENDCOORD = 1;
+
+        int axisSolution = -10;
+        if (child1.ParentNode.splitType == "x" )//nodes are vertical 
+        {
+            axisSolution = FindStraightConnectionAxis(child1, child2, "x");
+            if (axisSolution != -10)//straight connect or adjacent
+            {   //NOTE: FIX THIS, REGIONS MAY BE CONNECTED BUT NOT ATTATCHED 
+                //try straight connect, otherwise L connect
+               
+                if (!RoomsFromZonesAreAdjacent(child1, child2))
+                {
+                    StraightGrowUntilConnectionMade(child1, child2, child1.ParentNode.splitType, axisSolution, maxWidth, maxHeight);
+                }
+                else
+                {
+                    //Debug.Log("rooms are already adjacent!");
+                }
+            }
+            else
+            {
+                LGrowUntilConnectionMade(child1, child2, child1.ParentNode.splitType, maxWidth, maxHeight);
+            }
+            //add new stretch to parent populated area 
+            if (Region1IsMoreRight(child1.PopulatedRegionCoords, child2.PopulatedRegionCoords))
+            {
+                Vector2Int parentStartNode = new Vector2Int(child2.PopulatedRegionCoords[STARTCOORD].x, child1.PopulatedRegionCoords[STARTCOORD].y);
+                Vector2Int parentEndNode = new Vector2Int(child1.PopulatedRegionCoords[ENDCOORD].x, child2.PopulatedRegionCoords[ENDCOORD].y);
+                child1.ParentNode.PopulatedRegionCoords.Add(parentStartNode);
+                child1.ParentNode.PopulatedRegionCoords.Add(parentEndNode);
+            }
+            else
+            {
+                child1.ParentNode.PopulatedRegionCoords.Add(child1.PopulatedRegionCoords[STARTCOORD]);
+                child1.ParentNode.PopulatedRegionCoords.Add(child2.PopulatedRegionCoords[ENDCOORD]);
+            }
+        }
+        if (child1.ParentNode.splitType == "y")//nodes are horizontal
+        {
+            axisSolution = FindStraightConnectionAxis(child1, child2, "y");
+            if (axisSolution != -10)//straight connect or adjacent 
+            {
+                
+                if (!RoomsFromZonesAreAdjacent(child1, child2))//need to straight grow 
+                {//NOTE: FIX THIS, REGIONS MAY BE CONNECTED BUT NOT ATTATCHED 
+                    StraightGrowUntilConnectionMade(child1, child2, child1.ParentNode.splitType, axisSolution, maxWidth, maxHeight);
+                }
+                else
+                {
+                    //Debug.Log("rooms are already adjacent!");
+                    
+                }
+            }
+            else
+            {
+                LGrowUntilConnectionMade(child1, child2, child1.ParentNode.splitType, maxWidth, maxHeight);
+            }
+            //add new stretch to parent populated area (NOTE:similar to "x" split case, but switch nodes positions 
+            if (Region1IsMoreUp(child1.PopulatedRegionCoords, child2.PopulatedRegionCoords))
+            {
+                Vector2Int parentStartNode = new Vector2Int(child1.PopulatedRegionCoords[STARTCOORD].x, child2.PopulatedRegionCoords[STARTCOORD].y);
+                Vector2Int parentEndNode = new Vector2Int(child2.PopulatedRegionCoords[ENDCOORD].x, child1.PopulatedRegionCoords[ENDCOORD].y);
+                child1.ParentNode.PopulatedRegionCoords.Add(parentStartNode);
+                child1.ParentNode.PopulatedRegionCoords.Add(parentEndNode);
+            }
+            else
+            {
+                child1.ParentNode.PopulatedRegionCoords.Add(child1.PopulatedRegionCoords[STARTCOORD]);
+                child1.ParentNode.PopulatedRegionCoords.Add(child2.PopulatedRegionCoords[ENDCOORD]);
+            }
+        }
+    }
+    private bool CoordIsOccupied(Vector2Int location)
+    {   //checks if location is occupied (contained in OccupiedCoordinates list)
+        foreach (Vector3Int coord in OccupiedCoordinates)
+        {
+            if(location.x == coord.x && location.y == coord.y)
+            {
+                //Debug.Log("location is occupied:");
+                //Debug.Log(location);
+                return true;
+            }
+        }
+        return false;
+    }
+    private int FindStraightConnectionAxis(BSPNode node1, BSPNode node2, string splitType)
+    {//determines if two populated regions can be connected through a straight line and provides a solution axis 
+        int STARTCOORD = 0;
+        int ENDCOORD = 1;
+        int axisToConnect = -10;//will change if solution found 
+        if (splitType == "x")
+        {
+            if(node1.PopulatedRegionCoords[STARTCOORD].x <= node2.PopulatedRegionCoords[ENDCOORD].x)
+            {
+                if(node1.PopulatedRegionCoords[ENDCOORD].x >= node2.PopulatedRegionCoords[STARTCOORD].x)
+                {   //node can be straight connected 
+                    if (node1.PopulatedRegionCoords[STARTCOORD].x > node2.PopulatedRegionCoords[STARTCOORD].x && node1.PopulatedRegionCoords[ENDCOORD].x < node2.PopulatedRegionCoords[ENDCOORD].x)
+                    {   //node 1 is smaller and within node 2
+                        axisToConnect = UnityEngine.Random.Range(node1.PopulatedRegionCoords[STARTCOORD].x, node1.PopulatedRegionCoords[ENDCOORD].x);
+                    }
+                    else if (node2.PopulatedRegionCoords[STARTCOORD].x > node1.PopulatedRegionCoords[STARTCOORD].x && node2.PopulatedRegionCoords[ENDCOORD].x < node1.PopulatedRegionCoords[ENDCOORD].x)
+                    {   //node 2 is smaller and within node 1
+                        axisToConnect = UnityEngine.Random.Range(node2.PopulatedRegionCoords[STARTCOORD].x, node2.PopulatedRegionCoords[ENDCOORD].x);
+                    }
+                    else if (node1.PopulatedRegionCoords[STARTCOORD].x <= node2.PopulatedRegionCoords[STARTCOORD].x)
+                    {//node 1 is higher
+                        axisToConnect = UnityEngine.Random.Range(node2.PopulatedRegionCoords[STARTCOORD].x, node1.PopulatedRegionCoords[ENDCOORD].x);
+                    }
+                    else if (node1.PopulatedRegionCoords[STARTCOORD].x >= node2.PopulatedRegionCoords[STARTCOORD].x)
+                    {//node 2 is higher 
+                        axisToConnect = UnityEngine.Random.Range(node1.PopulatedRegionCoords[STARTCOORD].x, node2.PopulatedRegionCoords[ENDCOORD].x);
+                    }
+                    //Debug.Log("can be straight connected with axis:");
+                    //Debug.Log(axisToConnect);
+                }
+            }
+        }
+        else if (splitType == "y")
+        {
+            if (node1.PopulatedRegionCoords[STARTCOORD].y <= node2.PopulatedRegionCoords[ENDCOORD].y)
+            {
+                if (node1.PopulatedRegionCoords[ENDCOORD].y >= node2.PopulatedRegionCoords[STARTCOORD].y)
+                {   //node can be straight connected 
+                    if (node1.PopulatedRegionCoords[STARTCOORD].y > node2.PopulatedRegionCoords[STARTCOORD].y && node1.PopulatedRegionCoords[ENDCOORD].y < node2.PopulatedRegionCoords[ENDCOORD].y)
+                    {   //node 1 is smaller and within node 2
+                        axisToConnect = UnityEngine.Random.Range(node1.PopulatedRegionCoords[STARTCOORD].y, node1.PopulatedRegionCoords[ENDCOORD].y);
+                    }
+                    else if (node2.PopulatedRegionCoords[STARTCOORD].y > node1.PopulatedRegionCoords[STARTCOORD].y && node2.PopulatedRegionCoords[ENDCOORD].y < node1.PopulatedRegionCoords[ENDCOORD].y)
+                    {   //node 2 is smaller and within node 1
+                        axisToConnect = UnityEngine.Random.Range(node2.PopulatedRegionCoords[STARTCOORD].y, node2.PopulatedRegionCoords[ENDCOORD].y);
+                    }
+                    if (node1.PopulatedRegionCoords[STARTCOORD].y <= node2.PopulatedRegionCoords[STARTCOORD].y)
+                    {//node 1 is higher
+                        axisToConnect = UnityEngine.Random.Range(node2.PopulatedRegionCoords[STARTCOORD].y, node1.PopulatedRegionCoords[ENDCOORD].y);
+                    }
+                    if (node1.PopulatedRegionCoords[STARTCOORD].y >= node2.PopulatedRegionCoords[STARTCOORD].y)
+                    {//node 2 is higher 
+                        axisToConnect = UnityEngine.Random.Range(node1.PopulatedRegionCoords[STARTCOORD].y, node2.PopulatedRegionCoords[ENDCOORD].y);
+                        
+                    }
+
+                    //Debug.Log("can be straight connected with axis:");
+                    //Debug.Log(axisToConnect);
+                }
+
+            }
+        }
+        else
+        {
+            Debug.Log("WRONG SPLIT TYPE ARGUMENT GIVEN, FAKE NUMBER GIVEN");
+            Debug.Log("SPLIT TYPE GIVEN");
+            Debug.Log(splitType);
+
+            return -99;
+        }
+        return axisToConnect;
+    }
+    private void StraightGrowUntilConnectionMade(BSPNode node1, BSPNode node2, string splitType, int axisSolution, int maxWidth, int maxHeight)
+    {   //start from top / left and straight grow until another square reached
+        //NOTE::: need to make sure starting point is next to an occupied zone to prevent disconnects 
+        int STARTCOORD = 0;
+        int ENDCOORD = 1;
+        int timeout = 5000;
+        //Debug.Log("attempting straight connect");
+        if (splitType == "x")
+        {
+            int increment = 0;
+            Vector2Int currentPoint;
+            //determine which node is rightmost
+            if (node2.PopulatedRegionCoords[STARTCOORD].y >= node1.PopulatedRegionCoords[ENDCOORD].y)
+            {
+                increment = 1;
+                currentPoint = new Vector2Int(axisSolution, node2.PopulatedRegionCoords[STARTCOORD].y - increment);
+            }
+            else
+            {
+                increment = -1;
+                currentPoint = new Vector2Int(axisSolution, node2.PopulatedRegionCoords[STARTCOORD].y - increment);
+            }
+            //determine current point as first place which is occupied (start at node 2 and work back)
+            
+            Debug.Log("current point for start search:");
+            Debug.Log(currentPoint);
+            for (int i = 0; i < timeout; i++)
+            {
+                
+                if (CoordIsOccupied(currentPoint) || !CoordWithinBounds(currentPoint, maxWidth, maxHeight))
+                {
+                    break;
+                }
+                currentPoint = new Vector2Int(currentPoint.x, currentPoint.y - increment);//move down 1 
+
+            }
+            currentPoint = new Vector2Int(currentPoint.x, currentPoint.y + increment);
+            Debug.Log("starting growth at");
+            Debug.Log(currentPoint);
+            OccupiedCoordinates.Add(new Vector3Int(currentPoint.x, currentPoint.y, 0));
+            for(int i=0; i<timeout;i++)
+            {
+                currentPoint = new Vector2Int(currentPoint.x, currentPoint.y+increment);//move up 1 
+                if(CoordIsOccupied(currentPoint) || !CoordWithinBounds(currentPoint, maxWidth, maxHeight))
+                {
+                    break;
+                }
+                else
+                {
+                    //Debug.Log("adding room at: ");
+                    //Debug.Log(currentPoint);
+                    OccupiedCoordinates.Add(new Vector3Int(currentPoint.x, currentPoint.y, 0));
+                }
+            }
+        }
+        if (splitType == "y")
+        {
+            int increment = 0;
+            Vector2Int currentPoint;
+            //determine wVector2Int currentPointhich node is rightmost
+            if (node2.PopulatedRegionCoords[STARTCOORD].x >= node1.PopulatedRegionCoords[ENDCOORD].x)
+            {
+                increment = 1;
+                currentPoint = new Vector2Int(node2.PopulatedRegionCoords[STARTCOORD].x - increment, axisSolution);
+            }
+            else
+            {
+                increment = -1;
+                currentPoint = new Vector2Int(node2.PopulatedRegionCoords[ENDCOORD].x - increment, axisSolution);
+            }
+            //determine current point as first place which is occupied (start at node 2 and work back)
+            
+            Debug.Log("current point for start search:");
+            Debug.Log(currentPoint);
+            for (int i = 0; i < timeout; i++)
+            { 
+                if (CoordIsOccupied(currentPoint) || !CoordWithinBounds(currentPoint, maxWidth, maxHeight))
+                {
+                    break;
+                }
+                currentPoint = new Vector2Int(currentPoint.x - increment, currentPoint.y);//move forward 1 
+            }
+            currentPoint = new Vector2Int(currentPoint.x + increment, currentPoint.y );
+            Debug.Log("starting growth at");
+            Debug.Log(currentPoint);
+            OccupiedCoordinates.Add(new Vector3Int(currentPoint.x, currentPoint.y, 0));
+            for (int i = 0; i < timeout; i++)
+            {
+                currentPoint = new Vector2Int(currentPoint.x +increment, currentPoint.y);//move back 1 
+                //Debug.Log("at");
+                //Debug.Log(currentPoint);
+                if (CoordIsOccupied(currentPoint) || !CoordWithinBounds(currentPoint, maxWidth, maxHeight))
+                {
+                    break;
+                }
+                else
+                {
+                    //Debug.Log("adding room at: ");
+                    //Debug.Log(currentPoint);
+                    OccupiedCoordinates.Add(new Vector3Int(currentPoint.x, currentPoint.y, 0));
+                }
+            }
+            
+        }
+    }
+
+    private bool CoordWithinBounds(Vector2Int coord,int maxWidth,int maxHeight)
+    { 
+        if(coord.x >= 0 && coord.x <=maxWidth && coord.y>=0 && coord.y <= maxHeight)
+        {
+            return true;
+        }
+        else
+        {
+            //Debug.Log("coordinates out of bounds");
+            //Debug.Log(coord.x);
+            //Debug.Log(coord.y);
+            //Debug.Log(maxWidth);
+            //Debug.Log(maxHeight);
+            return false;
+        }
+    }
+    private int DistanceBetweenCoords(Vector2Int coord1, Vector2Int coord2)
+    {   //finds the D4 distance between coords
+        int distance = Math.Abs(coord1.x - coord2.x) + Math.Abs(coord1.y - coord2.y);
+        return distance;
+    }
+    private bool RoomsFromZonesAreAdjacent(BSPNode node1, BSPNode node2)
+    {//expensive method to see if any two rooms from two node regions are adjacent 
+        Debug.Log("check if rooms adjacent");
+        foreach(Vector2Int n1 in OccupiedCoordinates)
+        {
+            if(CoordinateWithinRegion(n1, node1.PopulatedRegionCoords))
+            {
+                //Debug.Log("n1");
+                //Debug.Log(n1);
+                foreach (Vector2Int n2 in OccupiedCoordinates)
+                {
+                    if (CoordinateWithinRegion(n2, node2.PopulatedRegionCoords))
+                    {
+                        //Debug.Log("n2");
+                        //Debug.Log(n2);
+                        if (DistanceBetweenCoords(n1, n2)==1)
+                        {
+                            //Debug.Log("Adjacent!");
+                            return true;
+                        }
+                    }
+                }
+            }
+            
+        }
+        return false;
+    }
+    public bool CoordinateWithinRegion(Vector2 coord, List<Vector2Int> region)
+    {   //determine if a coordinate is within a specified region
+        int STARTCOORD = 0;
+        int ENDCOORD = 1;
+        if (coord.x>=region[STARTCOORD].x && coord.x <= region[ENDCOORD].x && coord.y >= region[STARTCOORD].y && coord.y <= region[ENDCOORD].y)
+        {
+            return true;
+        }
+        return false;
+    }
+    private void LGrowUntilConnectionMade(BSPNode node1, BSPNode node2, string splitType, int maxWidth, int maxHeight)
+    {   //grow left/top most room vertically, then horizontal connect using straight grow
+        //first find random solution on node 2 and then grow off node 1 to make that solution possible 
+        Debug.Log("LconnectionToBeMade");
+        int STARTCOORD = 0;
+        int ENDCOORD = 1;
+        int timeout = 5000;
+        if (splitType == "x" || splitType == "y")
+        {
+            int axisToConnect_n1 = UnityEngine.Random.Range(node1.PopulatedRegionCoords[STARTCOORD].x, node1.PopulatedRegionCoords[ENDCOORD].x + 1);
+            int axisToConnect_n2 = UnityEngine.Random.Range(node2.PopulatedRegionCoords[STARTCOORD].y, node2.PopulatedRegionCoords[ENDCOORD].y + 1);
+            Vector2Int CornerPoint = new Vector2Int(axisToConnect_n1, axisToConnect_n2);
+            Debug.Log("corner point is");
+            Debug.Log(CornerPoint);
+            //determine increment direction
+            int increment;
+            if(node1.PopulatedRegionCoords[STARTCOORD].y >= axisToConnect_n2)
+            {
+                increment = -1;
+            }
+            else
+            {
+                increment = 1;
+            }
+            Vector2Int currentPoint = new Vector2Int(axisToConnect_n1, node1.PopulatedRegionCoords[ENDCOORD].y+increment); 
+            for (int i = 0; i < timeout; i++)
+            {   //grow to corner point 
+                if (currentPoint.y == axisToConnect_n2)//reached corner point 
+                {
+                    OccupiedCoordinates.Add(new Vector3Int(currentPoint.x, currentPoint.y, 0));
+                    break;
+                }
+                else
+                {
+                    Debug.Log("adding room at: ");
+                    Debug.Log(currentPoint);
+                    OccupiedCoordinates.Add(new Vector3Int(currentPoint.x, currentPoint.y, 0));
+                }
+                currentPoint = new Vector2Int(currentPoint.x, currentPoint.y + increment);//move towards corner 
+            }
+            //straight connect from here
+            //NOTE: since n1 always grows vertical to corner, straight connect will always act as "y" split 
+            StraightGrowUntilConnectionMade(node1, node2, "y", axisToConnect_n2, maxWidth, maxHeight);
+        }
+    }
+    public bool Region1IsMoreUp(List<Vector2Int> region1, List<Vector2Int> region2)
+    {   //check if region 1 is up most region than region 2 
+        int STARTCOORD = 0;
+        int ENDCOORD = 1;
+        if (region1[ENDCOORD].y > region2[ENDCOORD].y)
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
+    public bool Region1IsMoreRight(List<Vector2Int> region1, List<Vector2Int> region2)
+    {   //check if region is more rightmost than region 2 
+        int STARTCOORD = 0;
+        int ENDCOORD = 1;
+        if (region1[ENDCOORD].x > region2[ENDCOORD].x)
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
+
+    private void CreateRoomAtAllOccupiedZones()
+    {   //instantiates a room at each coord specified by the Occupied Zone List
+        foreach (Vector3Int coord in OccupiedCoordinates)
+        {
+            //Debug.Log("creating room at");
+            //Debug.Log(coord);
+            GenerateRoom(coord);
+        }
+    }
+    public void GenerateRoom(Vector3Int RoomPosition)
+    {
+        //wait for initial loading of rooms
+        //Entering from will hold value of direction needed to be open from recursive call
+        //0 == FIRSTROOM //1 = UP //2 = RIGHT //3 = DOWN //4 = LEFT
+        //Debug.Log("generatingRoom...");
+        if (NumRooms >= 0)
+        {
+            NumRooms -= 1;
+            //Debug.Log("NumRooms:" + NumRooms);
+            //OccupiedCoordinates.Add(RoomPosition);//remove position to avoid overites ///CHECK THIS 
+            //Debug.Log("generating room, number of rooms left: " + NumberOfRooms);
+            GameObject r = null;
+            //Instantate random room
+            //make sure room is acceptable based on previous accessor
+            r = Instantiate(RoomPrefab, RoomGrid.transform)
+                        as GameObject;
+                
+            //set proper position
+            r.gameObject.transform.parent = RoomGrid.transform;//set parent to roomgrid for proper sizing
+            r.transform.position = (Vector2)ZonesTilemap.GetCellCenterWorld(RoomPosition) + new Vector2(xoffset, yoffset);//set room position to zone tile position
+
+            //update room class
+            Room room = r.GetComponent<Room>();
+            room.LocalPosition = RoomPosition;
+            room.RoomWasGenerated = true;//used to differentiate manually and generated rooms 
+        }
+        else
+        {
+            //No more rooms left to make
+        }
+    }
+    //********************************************************************************************
+    //*******************************************************************************************
+    //******************************************************************************************
+    //**OLD** method, fills all rooms with starting room
+    /*
+     * 
+     * //connect generated floor to Connected zones (must be connected)
     public IEnumerator ConnectConnectedZone(Vector3Int connectedZone)
     {
         ReadyForNextConnectedZone = false;
@@ -251,615 +829,16 @@ public class Floor : MonoBehaviour {
         ReadyForNextConnectedZone = true;
     }
 
-    public Room FindRoomAtZone(Vector3Int zone)
+     * private void StartRoomGeneration()
     {
-        foreach(Transform room in RoomGrid.transform)
-        {
-
-            if(room.gameObject.GetComponent<Room>() !=null && room.gameObject.GetComponent<Room>().LocalPosition == zone)
-            {
-                //return room 
-                return room.GetComponent<Room>();
-            }
-        }
-        //if no room is there return null
-        //Debug.Log("WARNING: FindRoomAtZone() found no results"); //this is okay when method called in while loop to destroy all existing rooms
-        return null;
-    }
-
-    private void GenerateFloor()
-    {   //use BSP based method to generate floor 
-        int floorWidth = 20;
-        int floorHeight = 10;
-        int maxSplits = 5;
-        int minPartitionSize = 1;
-        int numThickIterations = 1;//adds extra rooms to thicken floor 
-        int maxThickRooms = 5;
-        BSPTree tree = new BSPTree(floorWidth, floorHeight);
-        tree.GenerateTree(maxSplits, minPartitionSize);//partition floor into multiple split zones 
-
-        //Debug.Log(tree.childNodes.Count);
-        //create a room in each region
-        for (int i = 0; i< tree.childNodes.Count ; i++)
-        {
-            BSPNode child = tree.childNodes[i];
-            //Debug.Log(tree.childNodes.Count);
-            //Debug.Log("now generating room from each region");
-            //Debug.Log(child.RegionCoords[0]);
-            //Debug.Log(child.RegionCoords[1]);
-            GenerateRoomFromRegion(child);
-        }
-        Debug.Log("occupied Zones:");
-        Debug.Log(OccupiedCoordinates.Count);
-        //connect each room
-        Debug.Log("now connecting rooms:");
-        RecurseConnectRooms(tree.headNode,floorWidth, floorHeight);
-        Debug.Log("occupied Zones:");
-        Debug.Log(OccupiedCoordinates.Count);
-        //add extra rooms to make floor less skinny
-        ThickenRooms(numThickIterations, maxThickRooms, floorWidth, floorHeight);
-        //instantiate all rooms
-        CreateRoomAtAllOccupiedZones();
-        
-    }
-    private void GenerateRoomFromRegion(BSPNode child)
-    {   //takes a defined region and creates a room inside of it
-        //currently only creates 1x1 rooms
-        //Debug.Log("generatingRoomFromRegion");
-        List<Vector2Int> region = child.RegionCoords;
-        int STARTCOORD = 0;
-        int ENDCOORD = 1;
-        //define random subset region within region 
-        int randPosx_1 = UnityEngine.Random.Range(region[STARTCOORD].x, region[ENDCOORD].x);
-        int randPosy_1 = UnityEngine.Random.Range(region[STARTCOORD].y, region[ENDCOORD].y);
-        int randPosx_2 = UnityEngine.Random.Range(randPosx_1, region[ENDCOORD].x);
-        int randPosy_2 = UnityEngine.Random.Range(randPosy_1, region[ENDCOORD].y);
-        //fill subset region with rooms
-        for(int x = randPosx_1; x<=randPosx_2;x++)
-        {
-            for (int y = randPosy_1; y <= randPosy_2; y++)
-            {
-                OccupiedCoordinates.Add(new Vector3Int(x, y, 0));
-            }
-        }
-        child.PopulatedRegionCoords.Add(new Vector2Int(randPosx_1, randPosy_1));
-        child.PopulatedRegionCoords.Add(new Vector2Int(randPosx_2, randPosy_2));
-        Debug.Log("room generated with populated region:");
-        Debug.Log(child.PopulatedRegionCoords[STARTCOORD]);
-        Debug.Log(child.PopulatedRegionCoords[ENDCOORD]);
-        //GenerateRoom(new Vector3Int(randPosx, randPosy, 0)); //all coordinates from occupied zones will be instantiated
-    }
-
-    private bool ThickenRooms(int numIterations,int maxThickRooms, int maxWidth, int maxHeight)
-    {//adds extra rooms in empty spaces where there are two or more adjacent rooms 
-        //returns nothing, just to exit function
-        int remainingRooms = maxThickRooms;
-        for(int iter=0; iter<numIterations;iter++)
-        {
-            for (int x = 0; x <= maxWidth; x++)
-            {
-                for (int y = 0; y <= maxHeight; y++)
-                {
-                    if (!CoordIsOccupied(new Vector2Int(x, y)))
-                    {
-                        int numAdjacentRooms = 0;
-                        if (CoordIsOccupied(new Vector2Int(x + 1, y))) { numAdjacentRooms++; }
-                        if (CoordIsOccupied(new Vector2Int(x - 1, y))) { numAdjacentRooms++; }
-                        if (CoordIsOccupied(new Vector2Int(x, y + 1))) { numAdjacentRooms++; }
-                        if (CoordIsOccupied(new Vector2Int(x, y - 1))) { numAdjacentRooms++; }
-                        if (numAdjacentRooms >= 2)
-                        {
-                            OccupiedCoordinates.Add(new Vector3Int(x, y, 0));
-                            remainingRooms--;
-                        }
-                        if (remainingRooms <= 0)
-                        {
-                            return false;
-                        }
-
-                    }
-                }
-            }
-        }
-        return true;
-    }
-    private void RecurseConnectRooms(BSPNode node, int maxWidth, int maxHeight)
-    {//use recersive algorithm to connect rooms together 
-        if(node.childNodes != null && node.childNodes.Count > 0)
-        {
-            //Debug.Log("down left");
-            RecurseConnectRooms(node.childNodes[0], maxWidth, maxHeight);
-            //Debug.Log("down right");
-            RecurseConnectRooms(node.childNodes[1], maxWidth, maxHeight);
-            //Debug.Log("connect");
-            ConnectRegions(node.childNodes[0], node.childNodes[1], maxWidth, maxHeight);
-        }
-
-    }
-    private void ConnectRegions(BSPNode child1, BSPNode child2, int maxWidth, int maxHeight)
-    {
-        Debug.Log("connecting children at coordinates: (not shown)");
-        //Debug.Log(child1.PopulatedRegionCoords.Count);
-        //Debug.Log(child2.PopulatedRegionCoords.Count);
-        Debug.Log(child1.PopulatedRegionCoords[0]);
-        Debug.Log(child1.PopulatedRegionCoords[1]);
-        Debug.Log(child2.PopulatedRegionCoords[0]);
-        Debug.Log(child2.PopulatedRegionCoords[1]);
-        int STARTCOORD = 0;
-        int ENDCOORD = 1;
-
-        int axisSolution = -10;
-        if (child1.ParentNode.splitType == "x" )//nodes are vertical 
-        {
-            axisSolution = FindStraightConnectionAxis(child1, child2, "x");
-            if (axisSolution != -10)//straight connect or adjacent
-            {   //NOTE: FIX THIS, REGIONS MAY BE CONNECTED BUT NOT ATTATCHED 
-                //try straight connect, otherwise L connect
-               
-                if (!RoomsFromZonesAreAdjacent(child1, child2))
-                {
-                    StraightGrowUntilConnectionMade(child1, child2, child1.ParentNode.splitType, axisSolution, maxWidth, maxHeight);
-                }
-                else
-                {
-                    Debug.Log("rooms are already adjacent!");
-                }
-            }
-            else
-            {
-                LGrowUntilConnectionMade(child1, child2, child1.ParentNode.splitType, maxWidth, maxHeight);
-            }
-            //add new stretch to parent populated area 
-            if (Region1IsMoreRight(child1.PopulatedRegionCoords, child2.PopulatedRegionCoords))
-            {
-                Vector2Int parentStartNode = new Vector2Int(child2.PopulatedRegionCoords[STARTCOORD].x, child1.PopulatedRegionCoords[STARTCOORD].y);
-                Vector2Int parentEndNode = new Vector2Int(child1.PopulatedRegionCoords[ENDCOORD].x, child2.PopulatedRegionCoords[ENDCOORD].y);
-                child1.ParentNode.PopulatedRegionCoords.Add(parentStartNode);
-                child1.ParentNode.PopulatedRegionCoords.Add(parentEndNode);
-            }
-            else
-            {
-                child1.ParentNode.PopulatedRegionCoords.Add(child1.PopulatedRegionCoords[STARTCOORD]);
-                child1.ParentNode.PopulatedRegionCoords.Add(child2.PopulatedRegionCoords[ENDCOORD]);
-            }
-        }
-        if (child1.ParentNode.splitType == "y")//nodes are horizontal
-        {
-            axisSolution = FindStraightConnectionAxis(child1, child2, "y");
-            if (axisSolution != -10)//straight connect or adjacent 
-            {
-                
-                if (!RoomsFromZonesAreAdjacent(child1, child2))//need to straight grow 
-                {//NOTE: FIX THIS, REGIONS MAY BE CONNECTED BUT NOT ATTATCHED 
-                    StraightGrowUntilConnectionMade(child1, child2, child1.ParentNode.splitType, axisSolution, maxWidth, maxHeight);
-                }
-                else
-                {
-                    Debug.Log("rooms are already adjacent!");
-                    
-                }
-            }
-            else
-            {
-                LGrowUntilConnectionMade(child1, child2, child1.ParentNode.splitType, maxWidth, maxHeight);
-            }
-            //add new stretch to parent populated area (NOTE:similar to "x" split case, but switch nodes positions 
-            if (Region1IsMoreUp(child1.PopulatedRegionCoords, child2.PopulatedRegionCoords))
-            {
-                Vector2Int parentStartNode = new Vector2Int(child1.PopulatedRegionCoords[STARTCOORD].x, child2.PopulatedRegionCoords[STARTCOORD].y);
-                Vector2Int parentEndNode = new Vector2Int(child2.PopulatedRegionCoords[ENDCOORD].x, child1.PopulatedRegionCoords[ENDCOORD].y);
-                child1.ParentNode.PopulatedRegionCoords.Add(parentStartNode);
-                child1.ParentNode.PopulatedRegionCoords.Add(parentEndNode);
-            }
-            else
-            {
-                child1.ParentNode.PopulatedRegionCoords.Add(child1.PopulatedRegionCoords[STARTCOORD]);
-                child1.ParentNode.PopulatedRegionCoords.Add(child2.PopulatedRegionCoords[ENDCOORD]);
-            }
-        }
-    }
-    private bool CoordIsOccupied(Vector2Int location)
-    {   //checks if location is occupied (contained in OccupiedCoordinates list)
-        foreach (Vector3Int coord in OccupiedCoordinates)
-        {
-            if(location.x == coord.x && location.y == coord.y)
-            {
-                Debug.Log("location is occupied:");
-                Debug.Log(location);
-                return true;
-            }
-        }
-        return false;
-    }
-    private int FindStraightConnectionAxis(BSPNode node1, BSPNode node2, string splitType)
-    {//determines if two populated regions can be connected through a straight line and provides a solution axis 
-        int STARTCOORD = 0;
-        int ENDCOORD = 1;
-        int axisToConnect = -10;//will change if solution found 
-        if (splitType == "x")
-        {
-            if(node1.PopulatedRegionCoords[STARTCOORD].x <= node2.PopulatedRegionCoords[ENDCOORD].x)
-            {
-                if(node1.PopulatedRegionCoords[ENDCOORD].x >= node2.PopulatedRegionCoords[STARTCOORD].x)
-                {   //node can be straight connected 
-                    if (node1.PopulatedRegionCoords[STARTCOORD].x > node2.PopulatedRegionCoords[STARTCOORD].x && node1.PopulatedRegionCoords[ENDCOORD].x < node2.PopulatedRegionCoords[ENDCOORD].x)
-                    {   //node 1 is smaller and within node 2
-                        axisToConnect = UnityEngine.Random.Range(node1.PopulatedRegionCoords[STARTCOORD].x, node1.PopulatedRegionCoords[ENDCOORD].x);
-                    }
-                    else if (node2.PopulatedRegionCoords[STARTCOORD].x > node1.PopulatedRegionCoords[STARTCOORD].x && node2.PopulatedRegionCoords[ENDCOORD].x < node1.PopulatedRegionCoords[ENDCOORD].x)
-                    {   //node 2 is smaller and within node 1
-                        axisToConnect = UnityEngine.Random.Range(node2.PopulatedRegionCoords[STARTCOORD].x, node2.PopulatedRegionCoords[ENDCOORD].x);
-                    }
-                    else if (node1.PopulatedRegionCoords[STARTCOORD].x <= node2.PopulatedRegionCoords[STARTCOORD].x)
-                    {//node 1 is higher
-                        axisToConnect = UnityEngine.Random.Range(node2.PopulatedRegionCoords[STARTCOORD].x, node1.PopulatedRegionCoords[ENDCOORD].x);
-                    }
-                    else if (node1.PopulatedRegionCoords[STARTCOORD].x >= node2.PopulatedRegionCoords[STARTCOORD].x)
-                    {//node 2 is higher 
-                        axisToConnect = UnityEngine.Random.Range(node1.PopulatedRegionCoords[STARTCOORD].x, node2.PopulatedRegionCoords[ENDCOORD].x);
-                    }
-                    Debug.Log("can be straight connected with axis:");
-                    Debug.Log(axisToConnect);
-                }
-            }
-        }
-        else if (splitType == "y")
-        {
-            if (node1.PopulatedRegionCoords[STARTCOORD].y <= node2.PopulatedRegionCoords[ENDCOORD].y)
-            {
-                if (node1.PopulatedRegionCoords[ENDCOORD].y >= node2.PopulatedRegionCoords[STARTCOORD].y)
-                {   //node can be straight connected 
-                    if (node1.PopulatedRegionCoords[STARTCOORD].y > node2.PopulatedRegionCoords[STARTCOORD].y && node1.PopulatedRegionCoords[ENDCOORD].y < node2.PopulatedRegionCoords[ENDCOORD].y)
-                    {   //node 1 is smaller and within node 2
-                        axisToConnect = UnityEngine.Random.Range(node1.PopulatedRegionCoords[STARTCOORD].y, node1.PopulatedRegionCoords[ENDCOORD].y);
-                    }
-                    else if (node2.PopulatedRegionCoords[STARTCOORD].y > node1.PopulatedRegionCoords[STARTCOORD].y && node2.PopulatedRegionCoords[ENDCOORD].y < node1.PopulatedRegionCoords[ENDCOORD].y)
-                    {   //node 2 is smaller and within node 1
-                        axisToConnect = UnityEngine.Random.Range(node2.PopulatedRegionCoords[STARTCOORD].y, node2.PopulatedRegionCoords[ENDCOORD].y);
-                    }
-                    if (node1.PopulatedRegionCoords[STARTCOORD].y <= node2.PopulatedRegionCoords[STARTCOORD].y)
-                    {//node 1 is higher
-                        axisToConnect = UnityEngine.Random.Range(node2.PopulatedRegionCoords[STARTCOORD].y, node1.PopulatedRegionCoords[ENDCOORD].y);
-                    }
-                    if (node1.PopulatedRegionCoords[STARTCOORD].y >= node2.PopulatedRegionCoords[STARTCOORD].y)
-                    {//node 2 is higher 
-                        axisToConnect = UnityEngine.Random.Range(node1.PopulatedRegionCoords[STARTCOORD].y, node2.PopulatedRegionCoords[ENDCOORD].y);
-                        
-                    }
-
-                    Debug.Log("can be straight connected with axis:");
-                    Debug.Log(axisToConnect);
-                }
-
-            }
-        }
+        Room.BranchType h1 = Room.BranchType.Hallway1;
+        //if a starting tile is placed, start generation there
+        if (StartZoneLocation != null)
+            RandomlyGenerateRoom(StartZoneLocation,0, h1);
+        //otherwise start at center of grid
         else
-        {
-            Debug.Log("WRONG SPLIT TYPE ARGUMENT GIVEN, FAKE NUMBER GIVEN");
-            Debug.Log("SPLIT TYPE GIVEN");
-            Debug.Log(splitType);
-
-            return -99;
-        }
-        return axisToConnect;
+        RandomlyGenerateRoom(tileCoordinates[tileCoordinates.Count / 2], 0,h1);//choose starting point for room generation
     }
-    private void StraightGrowUntilConnectionMade(BSPNode node1, BSPNode node2, string splitType, int axisSolution, int maxWidth, int maxHeight)
-    {   //start from top / left and straight grow until another square reached
-        //NOTE::: need to make sure starting point is next to an occupied zone to prevent disconnects 
-        int STARTCOORD = 0;
-        int ENDCOORD = 1;
-        int timeout = 5000;
-        Debug.Log("attempting straight connect");
-        if (splitType == "x")
-        {
-            int increment = 0;
-            Vector2Int currentPoint;
-            //determine which node is rightmost
-            if (node2.PopulatedRegionCoords[STARTCOORD].y >= node1.PopulatedRegionCoords[ENDCOORD].y)
-            {
-                increment = 1;
-                currentPoint = new Vector2Int(axisSolution, node2.PopulatedRegionCoords[STARTCOORD].y - increment);
-            }
-            else
-            {
-                increment = -1;
-                currentPoint = new Vector2Int(axisSolution, node2.PopulatedRegionCoords[STARTCOORD].y - increment);
-            }
-            //determine current point as first place which is occupied (start at node 2 and work back)
-            
-            Debug.Log("current point for start search:");
-            Debug.Log(currentPoint);
-            for (int i = 0; i < timeout; i++)
-            {
-                
-                if (CoordIsOccupied(currentPoint) || !CoordWithinBounds(currentPoint, maxWidth, maxHeight))
-                {
-                    break;
-                }
-                currentPoint = new Vector2Int(currentPoint.x, currentPoint.y - increment);//move down 1 
-
-            }
-            currentPoint = new Vector2Int(currentPoint.x, currentPoint.y + increment);
-            Debug.Log("starting growth at");
-            Debug.Log(currentPoint);
-            OccupiedCoordinates.Add(new Vector3Int(currentPoint.x, currentPoint.y, 0));
-            for(int i=0; i<timeout;i++)
-            {
-                currentPoint = new Vector2Int(currentPoint.x, currentPoint.y+increment);//move up 1 
-                if(CoordIsOccupied(currentPoint) || !CoordWithinBounds(currentPoint, maxWidth, maxHeight))
-                {
-                    break;
-                }
-                else
-                {
-                    //Debug.Log("adding room at: ");
-                    //Debug.Log(currentPoint);
-                    OccupiedCoordinates.Add(new Vector3Int(currentPoint.x, currentPoint.y, 0));
-                }
-            }
-        }
-        if (splitType == "y")
-        {
-            int increment = 0;
-            Vector2Int currentPoint;
-            //determine wVector2Int currentPointhich node is rightmost
-            if (node2.PopulatedRegionCoords[STARTCOORD].x >= node1.PopulatedRegionCoords[ENDCOORD].x)
-            {
-                increment = 1;
-                currentPoint = new Vector2Int(node2.PopulatedRegionCoords[STARTCOORD].x - increment, axisSolution);
-            }
-            else
-            {
-                increment = -1;
-                currentPoint = new Vector2Int(node2.PopulatedRegionCoords[ENDCOORD].x - increment, axisSolution);
-            }
-            //determine current point as first place which is occupied (start at node 2 and work back)
-            
-            Debug.Log("current point for start search:");
-            Debug.Log(currentPoint);
-            for (int i = 0; i < timeout; i++)
-            { 
-                if (CoordIsOccupied(currentPoint) || !CoordWithinBounds(currentPoint, maxWidth, maxHeight))
-                {
-                    break;
-                }
-                currentPoint = new Vector2Int(currentPoint.x - increment, currentPoint.y);//move forward 1 
-            }
-            currentPoint = new Vector2Int(currentPoint.x + increment, currentPoint.y );
-            Debug.Log("starting growth at");
-            Debug.Log(currentPoint);
-            OccupiedCoordinates.Add(new Vector3Int(currentPoint.x, currentPoint.y, 0));
-            for (int i = 0; i < timeout; i++)
-            {
-                currentPoint = new Vector2Int(currentPoint.x +increment, currentPoint.y);//move back 1 
-                //Debug.Log("at");
-                //Debug.Log(currentPoint);
-                if (CoordIsOccupied(currentPoint) || !CoordWithinBounds(currentPoint, maxWidth, maxHeight))
-                {
-                    break;
-                }
-                else
-                {
-                    //Debug.Log("adding room at: ");
-                    //Debug.Log(currentPoint);
-                    OccupiedCoordinates.Add(new Vector3Int(currentPoint.x, currentPoint.y, 0));
-                }
-            }
-            
-        }
-    }
-
-    private bool CoordWithinBounds(Vector2Int coord,int maxWidth,int maxHeight)
-    { 
-        if(coord.x >= 0 && coord.x <=maxWidth && coord.y>=0 && coord.y <= maxHeight)
-        {
-            return true;
-        }
-        else
-        {
-            //Debug.Log("coordinates out of bounds");
-            //Debug.Log(coord.x);
-            //Debug.Log(coord.y);
-            //Debug.Log(maxWidth);
-            //Debug.Log(maxHeight);
-            return false;
-        }
-    }
-    private int DistanceBetweenCoords(Vector2Int coord1, Vector2Int coord2)
-    {   //finds the D4 distance between coords
-        int distance = Math.Abs(coord1.x - coord2.x) + Math.Abs(coord1.y - coord2.y);
-        return distance;
-    }
-
-    private bool RoomsFromZonesAreAdjacent(BSPNode node1, BSPNode node2)
-    {//expensive method to see if any two rooms from two node regions are adjacent 
-        Debug.Log("check if rooms adjacent");
-        foreach(Vector2Int n1 in OccupiedCoordinates)
-        {
-            if(CoordinateWithinRegion(n1, node1.PopulatedRegionCoords))
-            {
-                //Debug.Log("n1");
-                //Debug.Log(n1);
-                foreach (Vector2Int n2 in OccupiedCoordinates)
-                {
-                    if (CoordinateWithinRegion(n2, node2.PopulatedRegionCoords))
-                    {
-                        //Debug.Log("n2");
-                        //Debug.Log(n2);
-                        if (DistanceBetweenCoords(n1, n2)==1)
-                        {
-                            //Debug.Log("Adjacent!");
-                            return true;
-                        }
-                    }
-                }
-            }
-            
-        }
-        return false;
-    }
-    private bool CoordinateWithinRegion(Vector2 coord, List<Vector2Int> region)
-    {
-        int STARTCOORD = 0;
-        int ENDCOORD = 1;
-        if (coord.x>=region[STARTCOORD].x && coord.x <= region[ENDCOORD].x && coord.y >= region[STARTCOORD].y && coord.y <= region[ENDCOORD].y)
-        {
-            return true;
-        }
-        return false;
-    }
-    private void LGrowUntilConnectionMade(BSPNode node1, BSPNode node2, string splitType, int maxWidth, int maxHeight)
-    {   //grow left/top most room vertically, then horizontal connect using straight grow
-        //first find random solution on node 2 and then grow off node 1 to make that solution possible 
-        Debug.Log("LconnectionToBeMade");
-        int STARTCOORD = 0;
-        int ENDCOORD = 1;
-        int timeout = 5000;
-        if (splitType == "x" || splitType == "y")
-        {
-            int axisToConnect_n1 = UnityEngine.Random.Range(node1.PopulatedRegionCoords[STARTCOORD].x, node1.PopulatedRegionCoords[ENDCOORD].x + 1);
-            int axisToConnect_n2 = UnityEngine.Random.Range(node2.PopulatedRegionCoords[STARTCOORD].y, node2.PopulatedRegionCoords[ENDCOORD].y + 1);
-            Vector2Int CornerPoint = new Vector2Int(axisToConnect_n1, axisToConnect_n2);
-            Debug.Log("corner point is");
-            Debug.Log(CornerPoint);
-            //determine increment direction
-            int increment;
-            if(node1.PopulatedRegionCoords[STARTCOORD].y >= axisToConnect_n2)
-            {
-                increment = -1;
-            }
-            else
-            {
-                increment = 1;
-            }
-            Vector2Int currentPoint = new Vector2Int(axisToConnect_n1, node1.PopulatedRegionCoords[ENDCOORD].y+increment); 
-            for (int i = 0; i < timeout; i++)
-            {   //grow to corner point 
-                if (currentPoint.y == axisToConnect_n2)//reached corner point 
-                {
-                    OccupiedCoordinates.Add(new Vector3Int(currentPoint.x, currentPoint.y, 0));
-                    break;
-                }
-                else
-                {
-                    Debug.Log("adding room at: ");
-                    Debug.Log(currentPoint);
-                    OccupiedCoordinates.Add(new Vector3Int(currentPoint.x, currentPoint.y, 0));
-                }
-                currentPoint = new Vector2Int(currentPoint.x, currentPoint.y + increment);//move towards corner 
-            }
-            //straight connect from here
-            //NOTE: since n1 always grows vertical to corner, straight connect will always act as "y" split 
-            StraightGrowUntilConnectionMade(node1, node2, "y", axisToConnect_n2, maxWidth, maxHeight);
-        }
-    }
-    public bool Region1IsMoreUp(List<Vector2Int> region1, List<Vector2Int> region2)
-    {   //check if region 1 is up most region than region 2 
-        int STARTCOORD = 0;
-        int ENDCOORD = 1;
-        if (region1[ENDCOORD].y > region2[ENDCOORD].y)
-        {
-            return true;
-        }
-        else
-        {
-            return false;
-        }
-    }
-    public bool Region1IsMoreRight(List<Vector2Int> region1, List<Vector2Int> region2)
-    {   //check if region is more rightmost than region 2 
-        int STARTCOORD = 0;
-        int ENDCOORD = 1;
-        if (region1[ENDCOORD].x > region2[ENDCOORD].x)
-        {
-            return true;
-        }
-        else
-        {
-            return false;
-        }
-    }
-
-    private void CreateRoomAtAllOccupiedZones()
-    {   //instantiates a room at each coord specified by the Occupied Zone List
-        foreach (Vector3Int coord in OccupiedCoordinates)
-        {
-            //Debug.Log("creating room at");
-            //Debug.Log(coord);
-            GenerateRoom(coord);
-        }
-    }
-    public void GenerateRoom(Vector3Int RoomPosition)
-    {
-        //wait for initial loading of rooms
-        //Entering from will hold value of direction needed to be open from recursive call
-        //0 == FIRSTROOM //1 = UP //2 = RIGHT //3 = DOWN //4 = LEFT
-        //Debug.Log("generatingRoom...");
-        if (NumRooms >= 0)
-        {
-            NumRooms -= 1;
-            //Debug.Log("NumRooms:" + NumRooms);
-            //OccupiedCoordinates.Add(RoomPosition);//remove position to avoid overites ///CHECK THIS 
-            //Debug.Log("generating room, number of rooms left: " + NumberOfRooms);
-            GameObject r = null;
-            //Instantate random room
-            //make sure room is acceptable based on previous accessor
-            bool acceptableRoomFound = false;
-            int randomint = UnityEngine.Random.Range(0, NormalRoomTypes.Count - 1);//pick random room
-                for (int i = 0; i < NormalRoomTypes.Count - 1; i++)
-                {
-                    NormalRoomTypes[randomint].GetComponent<Room>().InitBranchEnterArr();//init arr to access it from prefab
-
-                    if (true)//check if selected room is acceptable
-                    {//room is acceptable
-                        acceptableRoomFound = true;
-                        break;
-                    }
-                    else
-                    {//test next room in array
-                        randomint += 1;
-                        if (randomint >= NormalRoomTypes.Count)//wrap around array if needed
-                            randomint = 0;
-                    }
-                }
-                if (acceptableRoomFound)
-                {
-                    r = Instantiate(NormalRoomTypes[randomint].gameObject, RoomGrid.transform)
-                                as GameObject;
-                }
-                else
-                {
-                    Debug.Log("ERROR: NO ACCEPTABLE ROOM FOUND: using starting room instead");
-                    r = Instantiate(FirstRoom.gameObject, RoomGrid.transform)
-                            as GameObject;
-                }
-            //set proper position
-            r.gameObject.transform.parent = RoomGrid.transform;//set parent to roomgrid for proper sizing
-            r.transform.position = (Vector2)ZonesTilemap.GetCellCenterWorld(RoomPosition) + new Vector2(Xoffset, Yoffset);//set room position to zone tile position
-
-            //update room class
-            Room room = r.GetComponent<Room>();
-            room.LocalPosition = RoomPosition;
-            room.EnableGeneration = true;//continue propogation
-
-            //Determine Room type and assign it
-            if (EngineZones.Contains(RoomPosition))
-            {
-                room.Type = Room.RoomType.Engine;
-            }
-
-            else
-                room.Type = Room.RoomType.Normal;
-        }
-        else
-        {
-            //No more rooms left to make
-        }
-    }
-    //********************************************************************************************
-    //*******************************************************************************************
-    //******************************************************************************************
-    //**OLD** method, fills all rooms with starting room
     public void PopulateRooms()
     {
         //pull tilemap into array and list
@@ -892,7 +871,7 @@ public class Floor : MonoBehaviour {
                 GameObject room = Instantiate(FirstRoom.gameObject, RoomGrid.transform)
                     as GameObject;
                 room.gameObject.transform.parent = RoomGrid.transform;//set parent to roomgrid for proper sizing
-                room.transform.position = (Vector2)ZonesTilemap.GetCellCenterWorld(tileCoordinates[i]) + new Vector2(Xoffset, Yoffset);//set room position to zone tile position
+                room.transform.position = (Vector2)ZonesTilemap.GetCellCenterWorld(tileCoordinates[i]) + new Vector2(xoffset, yoffset);//set room position to zone tile position
 
             }
         }
@@ -986,7 +965,7 @@ public class Floor : MonoBehaviour {
             }
             //set proper position
             r.gameObject.transform.parent = RoomGrid.transform;//set parent to roomgrid for proper sizing
-            r.transform.position = (Vector2)ZonesTilemap.GetCellCenterWorld(RoomPosition) + new Vector2(Xoffset, Yoffset);//set room position to zone tile position
+            r.transform.position = (Vector2)ZonesTilemap.GetCellCenterWorld(RoomPosition) + new Vector2(xoffset, yoffset);//set room position to zone tile position
 
             //update room class
             Room room = r.GetComponent<Room>();
@@ -1014,6 +993,25 @@ public class Floor : MonoBehaviour {
         }
     }
 
+    private IEnumerator ConnectConnectedZones()
+    {
+        yield return new WaitForSeconds(2);//wait for room loading
+
+        foreach (Vector3Int connectedzone in ConnectedZones)
+        {
+            StartCoroutine(ConnectConnectedZone(connectedzone));
+            //wait for zone to be connected
+            while (!ReadyForNextConnectedZone)
+                yield return null;
+            yield return new WaitForSeconds(1);//wait for room loading
+        }
+
+        AstarPath.active.Scan();//updateNavMesh;
+        //*****ONLY START PLACING SPAWN CLUSTERS AFTER ROOMS ARE GENERATED******
+        spawnManager.PlaceScrapSpawnClusters();
+        RoomsHaveBeenGenerated = true;
+    }
+    */
 }
 
 public class BSPNode
@@ -1022,6 +1020,7 @@ public class BSPNode
     public List<Vector2Int> RegionCoords;//holds two coordinates defining top left and bot right of square region
     public List<Vector2Int> PopulatedRegionCoords = new List<Vector2Int>();//holds two coordinates space used up by room that is generated 
     public BSPNode ParentNode;
+    public InteriorData.ZoneType zoneType = InteriorData.ZoneType.NORMAL;
     public List<BSPNode> childNodes = new List<BSPNode>();//firstmode child is always top / left node
     
     public BSPNode(List<Vector2Int> region, BSPNode Parent)
@@ -1208,4 +1207,3 @@ public class BSPTree
     }
 
 }
-
