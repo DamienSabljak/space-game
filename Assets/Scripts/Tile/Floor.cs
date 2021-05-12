@@ -234,10 +234,10 @@ public class Floor : MonoBehaviour {
         //Debug.Log("connecting children at coordinates: (not shown)");
         //Debug.Log(child1.PopulatedRegionCoords.Count);
         //Debug.Log(child2.PopulatedRegionCoords.Count);
-        Debug.Log(child1.PopulatedRegionCoords[0]);
-        Debug.Log(child1.PopulatedRegionCoords[1]);
-        Debug.Log(child2.PopulatedRegionCoords[0]);
-        Debug.Log(child2.PopulatedRegionCoords[1]);
+        //Debug.Log(child1.PopulatedRegionCoords[0]);
+        //Debug.Log(child1.PopulatedRegionCoords[1]);
+        //Debug.Log(child2.PopulatedRegionCoords[0]);
+        //Debug.Log(child2.PopulatedRegionCoords[1]);
         int STARTCOORD = 0;
         int ENDCOORD = 1;
 
@@ -420,8 +420,8 @@ public class Floor : MonoBehaviour {
             }
             //determine current point as first place which is occupied (start at node 2 and work back)
             
-            Debug.Log("current point for start search:");
-            Debug.Log(currentPoint);
+            //Debug.Log("current point for start search:");
+            //Debug.Log(currentPoint);
             for (int i = 0; i < timeout; i++)
             {
                 
@@ -433,8 +433,8 @@ public class Floor : MonoBehaviour {
 
             }
             currentPoint = new Vector2Int(currentPoint.x, currentPoint.y + increment);
-            Debug.Log("starting growth at");
-            Debug.Log(currentPoint);
+            //Debug.Log("starting growth at");
+            //Debug.Log(currentPoint);
             OccupiedCoordinates.Add(new Vector3Int(currentPoint.x, currentPoint.y, 0));
             for(int i=0; i<timeout;i++)
             {
@@ -468,8 +468,8 @@ public class Floor : MonoBehaviour {
             }
             //determine current point as first place which is occupied (start at node 2 and work back)
             
-            Debug.Log("current point for start search:");
-            Debug.Log(currentPoint);
+            //Debug.Log("current point for start search:");
+            //Debug.Log(currentPoint);
             for (int i = 0; i < timeout; i++)
             { 
                 if (CoordIsOccupied(currentPoint) || !CoordWithinBounds(currentPoint, maxWidth, maxHeight))
@@ -479,8 +479,8 @@ public class Floor : MonoBehaviour {
                 currentPoint = new Vector2Int(currentPoint.x - increment, currentPoint.y);//move forward 1 
             }
             currentPoint = new Vector2Int(currentPoint.x + increment, currentPoint.y );
-            Debug.Log("starting growth at");
-            Debug.Log(currentPoint);
+            //Debug.Log("starting growth at");
+            //Debug.Log(currentPoint);
             OccupiedCoordinates.Add(new Vector3Int(currentPoint.x, currentPoint.y, 0));
             for (int i = 0; i < timeout; i++)
             {
@@ -525,7 +525,7 @@ public class Floor : MonoBehaviour {
     }
     private bool RoomsFromZonesAreAdjacent(BSPNode node1, BSPNode node2)
     {//expensive method to see if any two rooms from two node regions are adjacent 
-        Debug.Log("check if rooms adjacent");
+        //Debug.Log("check if rooms adjacent");
         foreach(Vector2Int n1 in OccupiedCoordinates)
         {
             if(CoordinateWithinRegion(n1, node1.PopulatedRegionCoords))
@@ -563,7 +563,7 @@ public class Floor : MonoBehaviour {
     private void LGrowUntilConnectionMade(BSPNode node1, BSPNode node2, string splitType, int maxWidth, int maxHeight)
     {   //grow left/top most room vertically, then horizontal connect using straight grow
         //first find random solution on node 2 and then grow off node 1 to make that solution possible 
-        Debug.Log("LconnectionToBeMade");
+        //Debug.Log("LconnectionToBeMade");
         int STARTCOORD = 0;
         int ENDCOORD = 1;
         int timeout = 5000;
@@ -572,8 +572,8 @@ public class Floor : MonoBehaviour {
             int axisToConnect_n1 = UnityEngine.Random.Range(node1.PopulatedRegionCoords[STARTCOORD].x, node1.PopulatedRegionCoords[ENDCOORD].x + 1);
             int axisToConnect_n2 = UnityEngine.Random.Range(node2.PopulatedRegionCoords[STARTCOORD].y, node2.PopulatedRegionCoords[ENDCOORD].y + 1);
             Vector2Int CornerPoint = new Vector2Int(axisToConnect_n1, axisToConnect_n2);
-            Debug.Log("corner point is");
-            Debug.Log(CornerPoint);
+            //Debug.Log("corner point is");
+            //Debug.Log(CornerPoint);
             //determine increment direction
             int increment;
             if(node1.PopulatedRegionCoords[STARTCOORD].y >= axisToConnect_n2)

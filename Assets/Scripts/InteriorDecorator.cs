@@ -1,12 +1,11 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Tilemaps;
 
 public class InteriorDecorator : MonoBehaviour
 {   //this class is an extentsion to the floor class, providing methods for decorating the interior of the floor 
     // Start is called before the first frame update
     int[,] zonesImg;//holds an "image like" reference to the occupied zones, for use of morphological operators 
+    int[,] decoratedImg;//image which holds room coordinates that have been already decorated by a template (such as corridor)
     void Start()
     {
         
@@ -20,40 +19,42 @@ public class InteriorDecorator : MonoBehaviour
     public void ConvertOccupiedZonesToImage(List<Vector3Int> occupiedZones, int width, int height)
     {   //converts the OccupiedZones list into a 2D "Image" for decorator methods
         zonesImg = new int[height+1, width+1];//initialize to zero, width and height are inclusive (+1)
+        decoratedImg = new int[height+1, width+1];//initialize to zero, width and height are inclusive (+1)
         foreach (Vector3Int coord in occupiedZones)
         {
             zonesImg[coord.y,coord.x] = 1;
         }
         Debug.Log("ZonesImg:");
-        PrintZoneImg();
+        PrintImg(zonesImg);
+
+        
     }
-    public void PrintZoneImg()
+    public static void PrintImg(int[,] img)
     {
-        string str_total = "";
         string row_str = "";
-        for (int row = zonesImg.GetLength(0)-1; row >=0; row--)
+        for (int row = img.GetLength(0)-1; row >=0; row--)
         {
             //string temp = row_str + "\n";
             //temp = temp + str_total;
             //str_total = temp;
-            for (int col = 0; col < zonesImg.GetLength(1); col++)
+            for (int col = 0; col < img.GetLength(1); col++)
             {
-                row_str += zonesImg[row, col];
+                row_str += img[row, col];
             }
             Debug.Log(row_str);
             row_str = "";
         }
         
     }
-
     public void DecorateFloor(List<BSPNode> treeLeaves)
     {   //tree leaves define which rooms are in which zones 
 
-        //generation order
-        //determine zones
-        //determine templates
-        //decorate
-
+        //generation order:
+        //choose random zones 
+        AssignRegionsAsSpecialZones(treeLeaves);
+        //decorate template matching areas
+        DecorateHorizontalCoridors();
+        //decorate zones
         foreach (BSPNode leaf in treeLeaves)
         {
             switch (leaf.zoneType)
@@ -61,9 +62,10 @@ public class InteriorDecorator : MonoBehaviour
                 case (InteriorData.ZoneType.NORMAL):
                     DecorateNormalZone(leaf);
                     break;
+                case (InteriorData.ZoneType.ENGINEERING):
+                    DecorateEngineeringZone(leaf);
+                    break;
             }
-                
-
         }
         
     }
@@ -72,23 +74,59 @@ public class InteriorDecorator : MonoBehaviour
         Debug.Log("Decorating Normal Zone");
         //populate random furniture 
         //NEED TO IMPLEMENT 
+        PlaceWallsInZone(leaf);
+    }
+    public void DecorateEngineeringZone(BSPNode leaf)
+    {
+        //decorate walls
+        PlaceWallsInZone(leaf);
+    }
+
+    public void DecorateHorizontalCoridors()
+    {
+        //first Detect Corridors 
+        ConvolutionKernel HorizontalCorridorKernel = new ConvolutionKernel(InteriorData.HorizontalCorridorHitMissStruct);
+        int[,] img_hitMiss = HorizontalCorridorKernel.HitMissConvolveImage(zonesImg);//create image of matching corridor zones 
+        print("****** HIT MISS IMG *****");
+        PrintImg(img_hitMiss);
+        for (int row = 0; row < img_hitMiss.GetLength(0); row++)
+        {
+            for (int col = 0; col < img_hitMiss.GetLength(1); col++)
+            {
+                if(img_hitMiss[row,col] == 1)
+                {   //room is a part of a corridor 
+                    decoratedImg[row, col] = 1;//let other decorators know this room is decorated 
+                    //place walls, decorations 
+                    //top wall
+                    WallEntry  wall = SelectRandomWallFromCriteria(WallEntry.Side.TOP, WallEntry.OpeningType.CLOSED, InteriorData.ZoneType.CORRIDOR);
+                    PlaceWallAtLocation(wall.pathToPrefab, new Vector2Int(col, row));
+                    //bot wall
+                    wall = SelectRandomWallFromCriteria(WallEntry.Side.BOTTOM, WallEntry.OpeningType.CLOSED, InteriorData.ZoneType.NORMAL);
+                    PlaceWallAtLocation(wall.pathToPrefab, new Vector2Int(col, row));
+                }
+            }
+        }
+    }
+    private void PlaceWallsInZone(BSPNode leaf)
+    {
         //create walls
         int STARTCOORD = 0;
         int ENDCOORD = 1;
-        for(int row= leaf.RegionCoords[STARTCOORD].y; row<= leaf.RegionCoords[ENDCOORD].y; row++)
+        for (int row = leaf.RegionCoords[STARTCOORD].y; row <= leaf.RegionCoords[ENDCOORD].y; row++)
         {
             for (int col = leaf.RegionCoords[STARTCOORD].x; col <= leaf.RegionCoords[ENDCOORD].x; col++)
             {
-                if(ImgAtCoordIsOccupied(new Vector2Int(col, row)))
-                {
-                    Debug.Log("now bulding walls for coords:");
-                    Debug.Log(new Vector2Int(col, row));
+                if (ImgAtCoordIsOccupied(new Vector2Int(col, row)) && decoratedImg[row,col] != 1)
+                {   //room exists and hasnt yet been decorated 
+                    
+                    //Debug.Log("now bulding walls for coords:");
+                    //Debug.Log(new Vector2Int(col, row));
                     InteriorData.ZoneType[] neighborZones = DetectNeighborZones(new Vector2Int(col, row), leaf);
                     for (int neighbor = 0; neighbor < neighborZones.Length; neighbor++)
                     {   //for each side of room, place wall depending on neighboring zone 
-                        Debug.Log("Neighbor "+((WallEntry.Side)neighbor).ToString() + " is:");
+                        //Debug.Log("Neighbor " + ((WallEntry.Side)neighbor).ToString() + " is:");
                         //Debug.Log(leaf.zoneType);
-                        Debug.Log(neighborZones[neighbor]);
+                        //Debug.Log(neighborZones[neighbor]);
                         if (neighborZones[neighbor] == InteriorData.ZoneType.OUTSIDE)
                         {   //neighbor is outside 
                             //place Closed Wall
@@ -147,10 +185,10 @@ public class InteriorDecorator : MonoBehaviour
             neighborZones[(int)WallEntry.Side.RIGHT] = InteriorData.ZoneType.OUTSIDE;
         }
         //Top Neighbour 
-        Debug.Log("TOP - CoordWithinImg is " + CoordWithinImg(new Vector2Int(roomCoord.x, roomCoord.y + 1)).ToString());
-        Debug.Log("TOP - ImgAtCoordIsOccuped is " + (ImgAtCoordIsOccupied(new Vector2Int(roomCoord.x, roomCoord.y + 1))).ToString() );
-        Debug.Log(new Vector2Int(roomCoord.x, roomCoord.y + 1));
-        Debug.Log(zonesImg[roomCoord.y+1, roomCoord.x]);
+        //Debug.Log("TOP - CoordWithinImg is " + CoordWithinImg(new Vector2Int(roomCoord.x, roomCoord.y + 1)).ToString());
+        //Debug.Log("TOP - ImgAtCoordIsOccuped is " + (ImgAtCoordIsOccupied(new Vector2Int(roomCoord.x, roomCoord.y + 1))).ToString() );
+        //Debug.Log(new Vector2Int(roomCoord.x, roomCoord.y + 1));
+        //Debug.Log(zonesImg[roomCoord.y+1, roomCoord.x]);
         if (CoordWithinImg(new Vector2Int(roomCoord.x, roomCoord.y + 1)) && ImgAtCoordIsOccupied(new Vector2Int(roomCoord.x, roomCoord.y + 1)))
         {   //neighbour is inside floor
             if (GetComponent<Floor>().CoordinateWithinRegion(new Vector2Int(roomCoord.x, roomCoord.y + 1), leaf.RegionCoords))
@@ -248,11 +286,138 @@ public class InteriorDecorator : MonoBehaviour
         PlaceWallAtLocation(bottomWalls[0].pathToPrefab, location);//- for now pick first choice
         PlaceWallAtLocation(topWalls[0].pathToPrefab, location);//- for now pick first choice
     }
-
     public void AssignRegionsAsSpecialZones(List<BSPNode> treeLeaves)
     {   //assign zones such as hospital, engineering etc to regions determined by leaves of node 
+        int randLeaf = UnityEngine.Random.Range(0, treeLeaves.Count);
+        int numZones = InteriorData.ZoneType.GetNames(typeof(InteriorData.ZoneType)).Length;
+        int randZone = UnityEngine.Random.Range(0, numZones);
+        //assign random zone 
+        //treeLeaves[randLeaf].zoneType = (InteriorData.ZoneType)randZone;
+        treeLeaves[randLeaf].zoneType = InteriorData.ZoneType.ENGINEERING;
+        Debug.Log("assigned leaf " + randLeaf.ToString() + " as engineering zone ");
+    }
+
+
+}
+
+class ConvolutionKernel
+{
+    public int[,] kernel;
+
+    public ConvolutionKernel(int[,] kernel_set)
+    {
+        kernel = kernel_set;
+    }
+
+    public int[,] HitMissConvolveImage(int[,] img)
+    {//returns a bitmap image of size img with matching pixels for a hit miss operation
+        //1 = hit //0=miss, //-1=dontCare
+        int[,] img_hitmiss = new int[img.GetLength(0),img.GetLength(1)];
+        int padAmt = (kernel.GetLength(0) - 1) / 2;
+        int[,] img_padded = CreatePaddedImage(img, padAmt);
+        int kernelSum = SumMatrix(kernel);
+        for (int row = 0; row < img.GetLength(0); row++)
+        {
+            for (int col = 0; col < img.GetLength(1); col++)
+            {
+                int row_pad = row + padAmt; 
+                int col_pad = col + padAmt;
+                Debug.Log("PadAmt");
+                Debug.Log(padAmt);
+                Debug.Log("now inspecting pixel: " + col.ToString() + "," + row.ToString());
+                //InteriorDecorator.PrintImg(kernel);
+                Debug.Log("subImage:");
+                InteriorDecorator.PrintImg(CreateSubsetMatrix(img_padded, row_pad - padAmt, row_pad + padAmt, col_pad - padAmt, col_pad + padAmt));
+                if (HitMissConvolve(       CreateSubsetMatrix(img_padded, row_pad - padAmt, row_pad + padAmt, col_pad - padAmt, col_pad + padAmt)))
+                {
+                    Debug.Log("Match!");
+                    img_hitmiss[row, col] = 1;
+                }
+            }
+        }
+        return img_hitmiss;
+    }
+
+    public int[,] CreateSubsetMatrix(int[,] img, int y_start, int  y_end, int x_start, int x_end)
+    {
+        int[,] img_sub = new int[y_end - y_start + 1, x_end - x_start + 1];
+        for (int row = 0; row < img_sub.GetLength(0); row++)
+        {
+            for (int col = 0; col < img_sub.GetLength(1); col++)
+            {
+                int row_sub = row + y_start;
+                int col_sub = col + x_start;
+                Debug.Log(row_sub.ToString() + "  " + col_sub.ToString());
+                //Debug.Log("img dimensions: " + img.GetLength(0).ToString() +" "+ img.GetLength(1).ToString());
+                //Debug.Log("row_sub, col_sub:  " +row_sub.ToString() + " "+ col_sub.ToString() );
+                img_sub[row, col] = img[row_sub, col_sub];
+            }
+        }
+        return img_sub;
 
     }
 
+    public int[,] ElementWiseMultiply(int[,] img_sub)
+    {   //convolve img_sub with saved convolution kernel 
+        int[,] product = new int[kernel.GetLength(0),kernel.GetLength(1)];
+        for (int row = 0; row < img_sub.GetLength(0); row++)
+        {
+            for (int col = 0; col < img_sub.GetLength(1); col++)
+            {
+                product[row,col] =  kernel[row, col] * img_sub[row, col];
+            }
+        }
+        return product;
+    }
+
+    public bool HitMissConvolve(int[,] img_sub)
+    {   //returns true if the pixel being examined matches the hit miss struct 
+        for (int row = 0; row < img_sub.GetLength(0); row++)
+        {
+            for (int col = 0; col < img_sub.GetLength(1); col++)
+            {
+                if(kernel[row,col] != img_sub[row,col] && kernel[row,col] != -1)
+                {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+    public int Convolve(int[,] img_sub)
+    {
+        int[,] product = ElementWiseMultiply(img_sub);
+        int sum = SumMatrix(product);
+        return sum;
+    }
+
+    public int SumMatrix(int[,] matrix)
+    {
+        int sum = 0;
+        for (int row = 0; row < matrix.GetLength(0); row++)
+        {
+            for (int col = 0; col < matrix.GetLength(1); col++)
+            {
+                sum += matrix[row, col];
+            }
+        }
+        return sum;
+    }
+
+    public int[,] CreatePaddedImage(int[,] img, int padAmt)
+    {   //creates a padded image for edge cases in the image during convolution
+        //padded sections are 0 
+        int[,] img_padded = new int[img.GetLength(0) + 2 * padAmt, img.GetLength(1) + 2 * padAmt];
+        for (int row = 0; row < img.GetLength(0); row++)
+        {
+            for (int col = 0; col < img.GetLength(1); col++)
+            {
+                int row_padded = row + padAmt;
+                int col_padded = col + padAmt;
+                img_padded[row_padded, col_padded] = img[row, col];
+            }
+        }
+        return img_padded;
+    }
 
 }

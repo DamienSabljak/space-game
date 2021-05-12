@@ -8,6 +8,7 @@ public class InteriorData : MonoBehaviour
 {   //this class is the interface used to interact with the interior database
     public static IDataReader reader;
     public static IDbConnection dbcon;
+    public static int[,] HorizontalCorridorHitMissStruct = {{-1,0,-1},{1,1,1},{-1,0,-1}};
     
     public enum ZoneType
     {//NOTE: do NOT change these without consulting database entries 
@@ -18,7 +19,8 @@ public class InteriorData : MonoBehaviour
         ARMOURY=4, 
         ENGINEERING=5, 
         OUTSIDE=6, //used to communicate zone is outside of floor / out of bounds 
-        DIFFERENT =7 //used to communicate a zone is different than a given floor 
+        DIFFERENT =7, //used to communicate a zone is different than a given floor 
+        CORRIDOR = 8
     }
     public enum TemplateType
     {//NOTE: do NOT change these without consulting database entries 
