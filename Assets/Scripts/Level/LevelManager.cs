@@ -1,6 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.SceneManagement;
 
 public class LevelManager : MonoBehaviour
@@ -22,8 +20,12 @@ public class LevelManager : MonoBehaviour
         }
         
     }
-    public static void LoadGame()
+    public static void LoadStaticGame()
     {
+        SceneManager.LoadScene("GameplayScene");
+    }
+    public void LoadGame()
+    {   //need a non static method for buttons (buttons will not see static methods) 
         SceneManager.LoadScene("GameplayScene");
     }
     public static void LoadShopScene()
@@ -32,8 +34,12 @@ public class LevelManager : MonoBehaviour
         SceneManager.LoadScene("ShopScene");
     }
 
-    public static void LoadMainMenu()
+    public static void LoadStaticMainMenu()
     {
+        SceneManager.LoadScene("MainMenu");
+    }
+    public void LoadMainMenu()
+    {   //need a non static method for buttons (buttons will not see static methods) 
         SceneManager.LoadScene("MainMenu");
     }
     public static void LoadEndScene()
@@ -47,7 +53,7 @@ public class LevelManager : MonoBehaviour
         Application.Quit();
     }
 
-    public static void SaveData()
+    public static void SavePlayerData()
     {//save data before opening a new scene
         Debug.Log("saving player data...");
         if(player == null)

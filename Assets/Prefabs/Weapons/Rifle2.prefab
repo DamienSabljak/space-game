@@ -13,7 +13,7 @@ GameObject:
   - component: {fileID: 61234487913808692}
   - component: {fileID: 114935180409540686}
   m_Layer: 13
-  m_Name: Rifle 1
+  m_Name: Rifle2
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -28,7 +28,7 @@ Transform:
   m_GameObject: {fileID: 1473522778392918}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 9.7621565, y: -2.7692688, z: 0.67}
-  m_LocalScale: {x: 8, y: 8, z: 1}
+  m_LocalScale: {x: 12, y: 12, z: 0.7954804}
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 0
@@ -121,12 +121,19 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   amount: 1
   baseCost: 200
-  Parent: {fileID: 0}
+  ShopName: Rifle
   projectile: {fileID: 1673873644341846, guid: 40262f4bff9bcd642afade192a1abcfe, type: 3}
-  InfiniteAmmo: 0
-  Damage: 150
+  Damage: 75
   projSpeed: 25
-  fireRate: 0.125
-  shotCounter: 0
+  weaponType: 0
+  InfiniteAmmo: 0
+  fireDelay: 0.1
+  weaponSpreadAngle: 3
+  shotsPerBurst: 3
+  timeBetweenBurstShots: 0.1
+  aimingLaser: {fileID: 0}
+  chargeCoolDowntime: 1
   fireSFX: {fileID: 8300000, guid: eacebe46c44c5c94b87d1f71c1ab6425, type: 3}
   fireSFXVol: 0.25
+  shotCounter: 0
+  Parent: {fileID: 0}

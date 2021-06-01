@@ -58,7 +58,7 @@ Camera:
   far clip plane: 1000
   field of view: 60
   orthographic: 1
-  orthographic size: 16.83
+  orthographic size: 22.94
   m_Depth: -1
   m_CullingMask:
     serializedVersion: 2
@@ -208,7 +208,7 @@ Rigidbody2D:
   m_UseFullKinematicContacts: 1
   m_UseAutoMass: 0
   m_Mass: 1
-  m_LinearDrag: 0
+  m_LinearDrag: 0.05
   m_AngularDrag: 0.05
   m_GravityScale: 0
   m_Material: {fileID: 0}
@@ -229,7 +229,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   overheadtext: {fileID: 114807654681588628}
-  MoveSpeed: 10
+  MoveSpeed: 15
   currentState: 0
   isGrounded: 1
   facing: 2
@@ -238,6 +238,7 @@ MonoBehaviour:
   padding: 1
   armsgroup: {fileID: 8520678931764296308}
   weaponSprite: {fileID: 8649470007132138782}
+  startingWeapon: {fileID: 0}
   CurrentToolBarItem: {fileID: 0}
   projectile: {fileID: 1673873644341846, guid: 40262f4bff9bcd642afade192a1abcfe, type: 3}
   InfiniteAmmo: 0
@@ -252,7 +253,10 @@ MonoBehaviour:
   deathSFX: {fileID: 8300000, guid: 37747d1ab7a9bc648abe9ebd7dce3415, type: 3}
   deathSFXVol: 0.04
   inventory: {fileID: 0}
+  startingWeaponEquipped: 0
   ModifiersList: []
+  pointingTowards: {x: 0, y: 0}
+  movingTowards: {x: 0, y: 0}
 --- !u!114 &114685187375238876
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -270,7 +274,7 @@ MonoBehaviour:
   startingAmmo: 200
   consumableArr: 000000000000000000000000
   ItemList: []
-  MaxItemSlots: 20
+  MaxItemSlots: 4
   ToolBarList: []
 --- !u!95 &852640988
 Animator:
@@ -661,7 +665,7 @@ SpriteRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 11
-  m_Sprite: {fileID: 21300012, guid: fd17370762c9e45429e8bc9ab36a71dd, type: 3}
+  m_Sprite: {fileID: 0}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -669,6 +673,6 @@ SpriteRenderer:
   m_Size: {x: 0.34, y: 0.12}
   m_AdaptiveModeThreshold: 0.5
   m_SpriteTileMode: 0
-  m_WasSpriteAssigned: 1
+  m_WasSpriteAssigned: 0
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0

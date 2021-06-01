@@ -1,0 +1,17 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!221 &22100000
+AnimatorOverrideController:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: rogue1
+  m_Controller: {fileID: 9100000, guid: b5dc569a656119242937deca9ef50e3d, type: 2}
+  m_Clips:
+  - m_OriginalClip: {fileID: 7400000, guid: 76e547aef856afb46b69ce9181b04a24, type: 2}
+    m_OverrideClip: {fileID: 7400000, guid: 9f7794579b4fb6e4fb5cbc7ecd46b6fd, type: 2}
+  - m_OriginalClip: {fileID: 7400000, guid: 4f0280f81e8504f49b12a5ebc4d5e8e3, type: 2}
+    m_OverrideClip: {fileID: 7400000, guid: 88745f89de5f207499ce096d7d24599c, type: 2}
+  - m_OriginalClip: {fileID: 7400000, guid: 813b86663b8183b49ac31882121acd42, type: 2}
+    m_OverrideClip: {fileID: 7400000, guid: fe98616c164b8894b90b6f6433440e89, type: 2}

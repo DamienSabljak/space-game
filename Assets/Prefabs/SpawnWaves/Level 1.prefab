@@ -45,5 +45,5 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Enemytypes:
   - {fileID: 1430394806181550, guid: 990915db0f469f1409ead33f410f5469, type: 3}
-  - {fileID: 1430394806181550, guid: 448ac436704717a4dad394491d9a32fc, type: 3}
-  EnemyAmounts: 0700000003000000
+  - {fileID: 4143716984385390706, guid: 5c9d54ffee220634ca9f822f1e0764d8, type: 3}
+  EnemyAmounts: 190000000f000000

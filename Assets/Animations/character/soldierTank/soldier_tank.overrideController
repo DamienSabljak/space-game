@@ -1,0 +1,17 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!221 &22100000
+AnimatorOverrideController:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: soldier_tank
+  m_Controller: {fileID: 9100000, guid: b5dc569a656119242937deca9ef50e3d, type: 2}
+  m_Clips:
+  - m_OriginalClip: {fileID: 7400000, guid: 76e547aef856afb46b69ce9181b04a24, type: 2}
+    m_OverrideClip: {fileID: 7400000, guid: 96fdc179aa9fa234cb447edb149ddeec, type: 2}
+  - m_OriginalClip: {fileID: 7400000, guid: 4f0280f81e8504f49b12a5ebc4d5e8e3, type: 2}
+    m_OverrideClip: {fileID: 7400000, guid: a24e654e6a4371d4c8beec8dc7aeb1fd, type: 2}
+  - m_OriginalClip: {fileID: 7400000, guid: 813b86663b8183b49ac31882121acd42, type: 2}
+    m_OverrideClip: {fileID: 7400000, guid: 2155c3f6a812bc248a6af03a8777c678, type: 2}

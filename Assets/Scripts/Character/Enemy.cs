@@ -10,32 +10,46 @@ public class Enemy : Character {
     [SerializeField] float FiringFieldMargin=0.1f;//how much furhter into the field to go for effective fire 
     [SerializeField] GameObject armsGroup; //refference to arms GROUP for animation
     [Header("Projectile")]
+    [SerializeField] AttackType  attackType = AttackType.NORMALSHOT;
     [SerializeField] GameObject projectile;
     [SerializeField] float projSpeed = 5f;
-    [SerializeField] float shotCounter;
     [SerializeField] float minShotTime = 0.2f;
     [SerializeField] float maxShotTime = 3f;
+    [SerializeField] float weaponSpreadAngle = 0.0f;//max angle in degrees from boresight weapon can shoot off from 
+    [SerializeField] public float timeBetweenBurstShots = 0.1f;//when burst firing multiple shots, how long between each shot should be 
+    [SerializeField] public int shotsPerBurst = 1;//how many shots to fire at once after shot time has been reached 
     [SerializeField] AudioClip fireSFX;
     [SerializeField] [Range(0, 1)] float fireSFXVol = 0.25f;
+    private float shotCounter;  //used to store timing of shots during ShootAt methods
+    private float burstCounter;  //used to store timing of burst shots during burst fire 
+    private float remainingBurstShots;//used to store remaining shots during burst fire
+    [Header("ChargeProjectileSpecific")]
+    [SerializeField] GameObject aimingLaser;//laser prefab to be drawn to warn player of charge shot 
+    [SerializeField] float chargeCoolDowntime = 1.0f;
+    private bool CoolingDown = false;   
     [Header("DeathFX")]
     [SerializeField] GameObject DeathVFX;
     [SerializeField] float deathTime=1f;
     [SerializeField] AudioClip deathSFX;
     [SerializeField] [Range(0,1)] float deathSFXVol = 0.7f;
     [SerializeField] GameObject ItemDrop;
+    [Header("internal parameters")]
     public bool isShooting = false;
     public bool TargetWithinFiringField = false;
     public bool TargetWithinDetectingField = false;
     GameObject currentTarget;//defines enemy's current target to attack, rn always player
     Vector3  TargetLastKnownPosition;
     float moveUpdateTime = 0.0f;
+    Laser laserInUse; //reference to laser prefab created during charge shots 
+
+    
 
 
     void Start()
     {
         shotCounter = UnityEngine.Random.Range(minShotTime, maxShotTime);
+        burstCounter = timeBetweenBurstShots;
         GetComponent<Animator>().SetBool("walking", false);
-        currentTarget = Level.CurrentLevel.currentPlayer.gameObject;
         TargetLastKnownPosition = transform.position;
     }
 
@@ -99,15 +113,47 @@ public class Enemy : Character {
             {
                 TargetLastKnownPosition = currentTarget.transform.position;
                 RotateArms(currentTarget.transform.position);//rotate arms to point weapon at target
-                CountAndShootAt(currentTarget.transform);
+                ShootAt(currentTarget.transform);
             }
             else if (!HasLineOfSight(currentTarget.transform) || !TargetWithinFiringField)
             {
+                StopShooting();
                 currentState = State.CHASING;
             }
         }
     }
     //****COMBAT****
+
+    public void ShootAt(Transform position)
+    {   //main method for firing, switches into other firing modes 
+        switch (attackType)
+        {
+            case (AttackType.NORMALSHOT):
+                CountAndShootAt(position);
+                break;
+            case (AttackType.CHARGESHOT):
+                ChargeAndShootAt(position);
+                break;
+            case (AttackType.MELEE):
+                Debug.Log("WARNING: MELEE METHOD FOR SHOOTAT HAS NOT BEEN CREATED");
+                break;
+        }
+
+    }
+    public void StopShooting()
+    {
+        switch (attackType)
+        {
+            case (AttackType.NORMALSHOT):
+                break;
+            case (AttackType.CHARGESHOT):
+                CancelChargeShot();
+                break;
+            case (AttackType.MELEE):
+                Debug.Log("WARNING: MELEE METHOD FOR SHOOTAT HAS NOT BEEN CREATED");
+                break;
+        }
+    }
 
     public void CountAndShootAt(Transform position)
     {
@@ -115,13 +161,86 @@ public class Enemy : Character {
         shotCounter -= Time.deltaTime;
         if(shotCounter <= 0f)
         {
-            Fire(position);
-            shotCounter = UnityEngine.Random.Range(minShotTime, maxShotTime);
+            if (remainingBurstShots > 0)
+            {   //call keeps catching here until burst complete
+                BurstFire(position);
+            }
+            else
+            {
+                shotCounter = UnityEngine.Random.Range(minShotTime, maxShotTime);
+                remainingBurstShots = shotsPerBurst;
+            }
+            
         }
     }
 
+    public void ChargeAndShootAt(Transform position)
+    {   //2 staged firing, 
+        //charge and fire (laser is drawn to alert player)
+        //cooldown (laser is removed) 
+        //shotcounter is used for both cooling down and charging up timing 
+        if(CoolingDown != true)
+        {   //charge weapon and fire 
+            //create laser
+            if (laserInUse == null)
+            {
+                GameObject laser = Instantiate(aimingLaser);
+                laserInUse = laser.GetComponent<Laser>();
+            }
+            laserInUse.GetComponent<Laser>().SetLaserLocation(transform.position, position.position);
+
+            shotCounter -= Time.deltaTime;
+            if (shotCounter <= 0f )
+            {
+                if(remainingBurstShots>0)
+                {   //call keeps catching here until burst complete
+                    BurstFire(position);
+                }
+                else
+                {   //firing complete, reset
+                    shotCounter = chargeCoolDowntime;
+                    remainingBurstShots = shotsPerBurst;
+                    CoolingDown = true;
+                } 
+            }
+        }
+        else
+        {   //weapon is cooling down 
+            //remove laser 
+            if(laserInUse != null) { Destroy(laserInUse.gameObject); }
+
+            //countdown
+            shotCounter -= Time.deltaTime;
+            if (shotCounter <= 0f)
+            {
+                shotCounter = UnityEngine.Random.Range(minShotTime, maxShotTime);
+                CoolingDown = false;
+            }
+        }
+    }
+
+    public void CancelChargeShot()
+    {   //resets charge shot after loss of L.O.S or range 
+        if(laserInUse != null)
+        {
+            Destroy(laserInUse.gameObject);//remove aiming laser 
+        }
+        
+        shotCounter = UnityEngine.Random.Range(minShotTime, maxShotTime);
+    }
+
+    private void BurstFire(Transform target)
+    {//used to countdown and burst fire 
+        burstCounter -= Time.deltaTime;
+        if(burstCounter<= 0)
+        {
+            Fire(target);
+            remainingBurstShots--;
+            burstCounter = timeBetweenBurstShots;
+        }
+    }
     private void Fire(Transform target)//used to shoot at specific object
-    {
+    {   //fire single shot, with random direction within maxAngleFromBoresight 
         //create missile
         GameObject Missle = Instantiate(
             projectile,
@@ -133,8 +252,11 @@ public class Enemy : Character {
         Missle.gameObject.layer = LayerMask.NameToLayer("Enemy projectile");
 
         //determine direction
-        Vector2 direction = Vector3.Normalize(target.transform.position - this.transform.position);
-
+        //see https://forum.unity.com/threads/rotating-a-vector-by-an-eular-angle.18485/ for more 
+        Vector2 boresight = Vector3.Normalize(target.transform.position - this.transform.position);//unit vector from enemy to target 
+        float angleFromBoresight = UnityEngine.Random.Range(-weaponSpreadAngle, weaponSpreadAngle);// [-phi,phi]
+        Vector2 direction = Quaternion.AngleAxis(angleFromBoresight, Vector3.forward) * boresight;//multiply by quaternion to rotate 
+        //instantiate prefab 
         Missle.GetComponent<Rigidbody2D>().transform.Translate(new Vector2(0, 0));//set location
         Missle.GetComponent<Rigidbody2D>().velocity = new Vector2(direction.x*projSpeed, direction.y*projSpeed);//set velocity
         //Audio 
@@ -256,6 +378,9 @@ public class Enemy : Character {
 
     public override void Die()
     {
+        //destroy laser if it exists
+        if(laserInUse != null) { Destroy(laserInUse.gameObject); }
+        
         Level.CurrentLevel.remainingEnemies.Remove(this.gameObject);//remove from tracker 
         Destroy(gameObject);//Destroy enemy
         //create death FX

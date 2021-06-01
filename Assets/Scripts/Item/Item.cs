@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using UnityEngine;
 
 public class Item : MonoBehaviour {
+    [Header("Item Parameters")]
+    [SerializeField] public string ShopName = "NO NAME GIVEN";
     [SerializeField] public int amount;
     [SerializeField] public int baseCost;//cost base to be used in transactions, affected by multipliers
 

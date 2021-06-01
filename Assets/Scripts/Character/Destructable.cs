@@ -18,11 +18,11 @@ public class Destructable : Character {
 
     private void OnTriggerEnter2D(Collider2D other)
     {
-        Debug.Log("Destructable collided w something");
+        //Debug.Log("Destructable collided w something");
         DamageDealer damageDealer = other.gameObject.GetComponent<DamageDealer>();
         if (damageDealer != null)
         {
-            Debug.Log("Destructable dealing w damage");
+            //Debug.Log("Destructable dealing w damage");
             HandleDamage(damageDealer);
         }
 

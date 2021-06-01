@@ -23,13 +23,13 @@ public class Inventory : MonoBehaviour {
     {
         consumableArr = new int[Consumable.numTypes];
         //scrap
-        Consumable.Type s = Consumable.Type.scrap;
+        Consumable.Type s = Consumable.Type.SCRAP;
         consumableArr[(int)s] = startingScrap;
         //money
-        Consumable.Type m = Consumable.Type.money;
+        Consumable.Type m = Consumable.Type.MONEY;
         consumableArr[(int)m] = startingMoney;
         //Ammo
-        Consumable.Type a = Consumable.Type.ammo;
+        Consumable.Type a = Consumable.Type.AMMO;
         consumableArr[(int)a] = startingAmmo;
     } 
 

@@ -45,4 +45,4 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Enemytypes:
   - {fileID: 1430394806181550, guid: 990915db0f469f1409ead33f410f5469, type: 3}
-  EnemyAmounts: 03000000
+  EnemyAmounts: 19000000

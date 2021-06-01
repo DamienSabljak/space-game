@@ -9,10 +9,10 @@ public class Consumable : Item {
 
     public enum Type
     {//list of consumables
-        scrap,
-        ammo,
-        money, 
-        health
+        SCRAP,
+        AMMO,
+        MONEY, 
+        HEALTH
     };
     public static int numTypes = System.Enum.GetNames(typeof(Type)).Length;
   

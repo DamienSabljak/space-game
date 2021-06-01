@@ -18,7 +18,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &4993106721312084
 Transform:
   m_ObjectHideFlags: 0
@@ -70,7 +70,7 @@ SpriteRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 11
-  m_Sprite: {fileID: 21300010, guid: d41cf9b8613a5484d8e8613ad0f1ea01, type: 3}
+  m_Sprite: {fileID: 21300010, guid: fd17370762c9e45429e8bc9ab36a71dd, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -119,14 +119,21 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8b55f14a14e596a4ea350ccb91bc3bb9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  ShopName: pistol
   amount: 0
   baseCost: 50
-  Parent: {fileID: 0}
-  projectile: {fileID: 1628391139763834, guid: 35f0c8a46c63d124aa4e985bd6a80f03, type: 3}
-  InfiniteAmmo: 0
-  Damage: 300
-  projSpeed: 10
-  fireRate: 1
-  shotCounter: 0
+  projectile: {fileID: 1673873644341846, guid: 40262f4bff9bcd642afade192a1abcfe, type: 3}
+  Damage: 100
+  projSpeed: 25
+  weaponType: 0
+  InfiniteAmmo: 1
+  fireDelay: 0.5
+  weaponSpreadAngle: 0
+  shotsPerBurst: 1
+  timeBetweenBurstShots: 0.1
+  aimingLaser: {fileID: 0}
+  chargeCoolDowntime: 1
   fireSFX: {fileID: 8300000, guid: eacebe46c44c5c94b87d1f71c1ab6425, type: 3}
   fireSFXVol: 0.25
+  shotCounter: 0
+  Parent: {fileID: 0}

@@ -4,49 +4,33 @@ using System.Collections.Generic;
 using UnityEngine;
 
 public class Room : MonoBehaviour {
+    [Header("references")]
     [SerializeField] public GameObject interiorGrid;//reference to interior grid object 
-    [SerializeField] public BranchType UPBranch;
-    [SerializeField] public BranchType RIGHTBranch;
-    [SerializeField] public BranchType DOWNBranch;
-    [SerializeField] public BranchType LEFTBranch;
-    [SerializeField] public RoomType   Type;
+
+    [Header("parameters")]
     public Vector3Int LocalPosition = new Vector3Int(99, 99, 99);//holds room's local position in zones tilemap, 99's so it doesnt mess with generation code
-    [SerializeField] public bool EnableGeneration = false;//old, needs to be removed 
+    public int EnemiesSpawnedInThisRoom = 0;//used to keep track of how many enemies were spawned via the SpawnManager Class
     public bool RoomWasGenerated = false;//used to determine which rooms are a part of floor generation for FindRoomAtZone() method 
-    //Static information
-    [HideInInspector] public BranchType[] BranchEnterArr;//array about requested entrance information
-    public static float[] RoomLocalBounds = {-86.32f,-60.32f, -36.4f, 15.6f};//Gives minX,maxX, minY,maxY coordinates of room for random spawning purposes (with some margin)
-    public enum BranchType
-    {
-        Hallway1, Hallway3, Open, Closed,
-    }
-
-    public enum RoomType
-    {
-        Normal, Engine, Bridge
-    }
-
+    [HideInInspector] public static float[] RoomLocalBounds = {-86.32f,-60.32f, -36.4f, 15.6f};//Gives minX,maxX, minY,maxY coordinates of room for random spawning purposes (with some margin)
 
     // Use this for initialization
     void Start()
     {
-        InitBranchEnterArr();
 
-        
-        
-        
-        //old method
-        /*
-        if (EnableGeneration)
-        {
-            //Debug.Log("Random Generation Started...");
-            StartCoroutine(CreateSurroundingRooms());
-        }
-        */
-        //StartCoroutine(SetRoomLayout());
     }
 
-    public void InitBranchEnterArr()
+    // Update is called once per frame
+    void Update() {
+
+    }
+
+
+    // **OLD METHODS
+    /*
+     * 
+     * 
+     * 
+     *     public void InitBranchEnterArr()
     {
         //contains opposites of entering code in floor class
         BranchEnterArr = new BranchType[4];
@@ -55,14 +39,7 @@ public class Room : MonoBehaviour {
         BranchEnterArr[2] = UPBranch;
         BranchEnterArr[3] = RIGHTBranch;
     }
-
-
-    // Update is called once per frame
-    void Update() {
-
-    }
-
-    //**ROOM LAYOUT**
+        //**ROOM LAYOUT**
     public IEnumerator SetRoomLayout()
     {
         while (Floor.CurrentFloor == null)
@@ -188,9 +165,6 @@ public class Room : MonoBehaviour {
 
 
     }
-    // **OLD METHODS
-    /*
-     * 
      * //method to instantiate a new room to avoid errors such as no localposition set
     public static GameObject CreateRoom(BranchType U, BranchType R, BranchType D, BranchType L,Vector3Int newPosition)
     {

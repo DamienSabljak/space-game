@@ -81,7 +81,7 @@ public class PlayerInventoryMenu : Menu {
     private void UpdateMenuText()
     {
         //update money text
-        Consumable.Type m = Consumable.Type.money;
+        Consumable.Type m = Consumable.Type.MONEY;
         PlayerMoneyText.text = "Money: " + Level.CurrentLevel.currentPlayer.inventory.consumableArr[(int)m];
     }
 

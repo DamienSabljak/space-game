@@ -20,9 +20,12 @@ public class Vendor : Character {
     {
         VendorInv = gameObject.GetComponent<Inventory>();
         //Debug.Log("Vendorinv should be added");
-        availableItems.Add(Instantiate(possibleItems[UnityEngine.Random.Range(0, possibleItems.Count - 1)]));//randomly choose 3 items for vendor inventory 
-        availableItems.Add(Instantiate(possibleItems[UnityEngine.Random.Range(0, possibleItems.Count - 1)]));
-        availableItems.Add(Instantiate(possibleItems[UnityEngine.Random.Range(0, possibleItems.Count - 1)]));
+        if(possibleItems.Count >0)
+        {
+            availableItems.Add(Instantiate(possibleItems[UnityEngine.Random.Range(0, possibleItems.Count)]));//randomly choose 3 items for vendor inventory 
+            availableItems.Add(Instantiate(possibleItems[UnityEngine.Random.Range(0, possibleItems.Count)]));
+            availableItems.Add(Instantiate(possibleItems[UnityEngine.Random.Range(0, possibleItems.Count)]));
+        } 
     }
 
     public void InitCosts()
@@ -59,7 +62,7 @@ public class Vendor : Character {
     virtual public void PurchaseItem(Item item, int amount)//create a new item object if needed when calling 
     {
         //access customer money
-        Consumable.Type m = Consumable.Type.money;
+        Consumable.Type m = Consumable.Type.MONEY;
         int cusMoney = CustomerInv.consumableArr[(int)m];
 
         //consumable section
@@ -104,7 +107,7 @@ public class Vendor : Character {
 
     virtual public void SellItem(Item item, int amount)//create a new item object if needed when calling 
     {
-        Consumable.Type m = Consumable.Type.money;
+        Consumable.Type m = Consumable.Type.MONEY;
         int cusMoney = CustomerInv.consumableArr[(int)m];
 
         //consumable section

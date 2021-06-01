@@ -7,20 +7,11 @@ public class SpawnManager : MonoBehaviour {
 
     [SerializeField] public Grid RoomGrid; //grid to hold all room tilemaps in 
     [SerializeField] public GameObject ui;//stores reference to UI object with ui script for calls 
-    [Header("Spawn Points")]
-    [SerializeField] GameObject EnemySpawnPoint;
-    [SerializeField] int MinEnemies=0;
-    [SerializeField] int MaxEnemies=4;
+    [Header("Spawn Parameters")]
+    [SerializeField] public int maxEnemiesPerRoom;//regardless of enemy type 
+
     [Header("Spawn Waves")]
     [SerializeField] List<GameObject> SpawnWaves;
-    private int CurrentWave = 0;
-
-    [Header("Spawn Clusters")]
-    [SerializeField] GameObject EnemySpawnCluster;
-    [SerializeField] GameObject ScrapSpawnCluster;
-    [Header("Probabilites")]
-    [SerializeField] [Range(0,1)] float EnemySpawnProbability = 0.5f;
-    [SerializeField] [Range(0,1)] float ScrapSpawnProbability = 0.25f;
     public static bool EnemiesHaveBeenSpawned = false;
     
 
@@ -41,13 +32,18 @@ public class SpawnManager : MonoBehaviour {
 
     //Find a way to call this, have to wait for rooms to be completed
     public void SpawnEnemies()
-    {
-        Debug.Log("enemies being spawned...");
+    {   //main method for generating enemies on a floor
+        //method uses premade wave objects to determine generation data (such as number of enemies)
+        //method goes over each room, places 1-3 enemies of each type randomly in a room
+        //if the # of enemies to be spawned isnt reached, restart process again 
+        //****TO FIX: Find way to make sure enemies arent spawned on walls*****
+        
+        Debug.Log("~~~~~~~~~~~ enemies being spawned... ~~~~~~~~~~~~~");
         //extract number of enemies from wave object
-        int amountToBeSpawned;
-        GameObject newEnemy;
         SpawnWave spawnWave;
         //Debug.Log("CurrentLevel: " + LevelManager.currentLevelnum);
+
+        //select spawn wave to retreive info from 
         if (LevelManager.currentLevelnum-1 >= SpawnWaves.Count)
         {
             Debug.Log("WARNING: A call was made to access a wave level that wasnt in the list, using first wave as placeholder");
@@ -55,51 +51,72 @@ public class SpawnManager : MonoBehaviour {
         }
         else
             spawnWave = SpawnWaves[LevelManager.currentLevelnum-1].GetComponent<SpawnWave>();
-
+        List<int> remainingEnemiesToSpawn = new List<int>(spawnWave.EnemyAmounts);
         //cycle through each enemy type in wave
-        for (int i=0; i< spawnWave.Enemytypes.Count;i++)
-        {
-            if (spawnWave.Enemytypes[i] == null)
-                Debug.Log("WARNING: a null has been encountered, make sure the wave objects used do not have null's in the enemyTypes list");
-
-            amountToBeSpawned = spawnWave.EnemyAmounts[i];//clone copy object variable to not mutate it 
             //cycle through each room
             int timeout = 0;
-            while (amountToBeSpawned > 0 && timeout < 10000)
+            while (!AllEnemiesSpawned(remainingEnemiesToSpawn) && timeout < 100)
             {
-                foreach (Transform room in RoomGrid.transform)
+                foreach (Transform room in RoomGrid.transform)//access rooms via childs of roomgrid gameobject
                 {
 
-                    if (room.GetComponent<Room>() != null && room.GetComponent<Room>().EnableGeneration == true)//used so only wanted rooms have enemies spawned
-                    {
-                        int enemiesInThisRoom = Random.Range(1, amountToBeSpawned);//multiple enemies could be spawned in the same room
-                        for (int j = 0; j < enemiesInThisRoom; j++)
-                        {
-                            //Debug.Log("amount to be spawned: " + amountToBeSpawned);
-                            newEnemy = Instantiate(spawnWave.Enemytypes[i], room.position, Quaternion.identity);
-                            //Debug.Log("enemy placed from SpawnEnemies()!!");
-                            newEnemy.transform.parent = room;
-                            //spawn in random place in room
-                            newEnemy.transform.localPosition = new Vector2(Random.Range(Room.RoomLocalBounds[0], Room.RoomLocalBounds[1]), Random.Range(Room.RoomLocalBounds[2], Room.RoomLocalBounds[3]));//place in random spot
-                            amountToBeSpawned -= 1;
-                            Level.CurrentLevel.remainingEnemies.Add(newEnemy);//keep track of enemies on current level
-                            //****TO FIX: Find way to make sure enemies arent spawned on walls*****
-
-                        }
-                        //CreateEnemySpawnCluster(room);
+                    if (room.GetComponent<Room>() != null && room.gameObject.GetComponent<Room>().RoomWasGenerated == true)
+                    {   //object is indeed a room and it was generated
+                        CycleEnemyTypesAndSpawn(room.GetComponent<Room>(), remainingEnemiesToSpawn, spawnWave);
                     }
-                    if (amountToBeSpawned <= 0)
+                    if (AllEnemiesSpawned(remainingEnemiesToSpawn))
                         break;
                 }
                 timeout++;
             }
-            Debug.Log("amount to be spawned: " + amountToBeSpawned);
+            if(timeout >= 100)
+        {
+            Debug.Log("WARNING: SPAWNENEMIES HAS TIMED OUT");
         }
         ui.GetComponent<UI>().DisplayGameAlert("Level " + LevelManager.currentLevelnum + ": " + Level.CurrentLevel.remainingEnemies.Count.ToString() + " Enemies remaining");
     }
 
-    //***OLDDD METHOD***
+    private void SpawnEnemyInRandomPosition(Room room, GameObject enemyType)
+    {   //spawn enemy of enemyType in a random postition inside room
+        //Debug.Log("spawn enemy in random position");
+        //instantiate enemy and place within room
+        GameObject newEnemy = Instantiate(enemyType, room.transform.position, Quaternion.identity);
+        newEnemy.transform.parent = room.transform;
+        newEnemy.transform.localPosition = new Vector2(Random.Range(Room.RoomLocalBounds[0], Room.RoomLocalBounds[1]), Random.Range(Room.RoomLocalBounds[2], Room.RoomLocalBounds[3]));
+        Level.CurrentLevel.remainingEnemies.Add(newEnemy);//keep track of enemies on current level
+        room.EnemiesSpawnedInThisRoom++;
+    }
     
+    private void CycleEnemyTypesAndSpawn(Room room, List<int> remainingEnemiesToSpawn, SpawnWave spawnWave)
+    {//places a couple enemies of each enemy type in a given room 
+        //Debug.Log("~cycle spawn enemy in room~");
+        for (int enemyType_ind = 0; enemyType_ind < remainingEnemiesToSpawn.Count; enemyType_ind++)
+        {   //for each enemy type 
+
+            int enemiesSpawnedInThisRoom = Random.Range(1, 3);
+            for (int j = 0; j < enemiesSpawnedInThisRoom && room.GetComponent<Room>().EnemiesSpawnedInThisRoom < maxEnemiesPerRoom; j++)
+            {   //for given random enemies 
+                SpawnEnemyInRandomPosition(room.GetComponent<Room>(), spawnWave.Enemytypes[enemyType_ind]);
+                remainingEnemiesToSpawn[enemyType_ind] -= 1;
+                if (remainingEnemiesToSpawn[enemyType_ind] <= 0)
+                    break;
+
+            }
+        }
+    }
+
+    private bool AllEnemiesSpawned(List<int> remainingEnemiesToSpawn)
+    {
+        for(int i=0;i<remainingEnemiesToSpawn.Count;i++)
+        {
+            if (remainingEnemiesToSpawn[i] > 0);
+            return false;
+        }
+        return true;
+    }
+
+    //***OLDDD METHODS***
+    /*
     public void PlaceScrapSpawnClusters()
     {
         //cycle through each room
@@ -133,5 +150,5 @@ public class SpawnManager : MonoBehaviour {
         spawnCluster.transform.parent = room;
         spawnCluster.transform.localPosition = new Vector2(Random.Range(Room.RoomLocalBounds[0], Room.RoomLocalBounds[1]), Random.Range(Room.RoomLocalBounds[2], Room.RoomLocalBounds[3]));//place in random spot
     }
-    
+    */
 }

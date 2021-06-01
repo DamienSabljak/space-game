@@ -51,6 +51,9 @@ public class Floor : MonoBehaviour {
     private bool ReadyForNextConnectedZone = true;//used to space out corutines
     public Vector3Int firstRoom;//room adjacent to entrance, updated by TranslateFloor() method 
     public BSPTree tree;
+    public static bool floorHasBeenDecorated = false;
+    public int floorWidth = 10;//coordinate values will be from ([0,floorWidth],[0,floorheight])
+    public int floorHeight = 5;
     
     // Use this for initialization
     void Start ()
@@ -58,10 +61,9 @@ public class Floor : MonoBehaviour {
         //NumRooms = LevelManager.currentLevelnum;//create 1 extra floor per level 
         RoomsHaveBeenGenerated = false;//reset for new scene loads
         ZonesTilemap = gameObject.GetComponent<Tilemap>();
-        int floorWidth = 20;//coordinate values will be from ([0,floorWidth],[0,floorheight])
-        int floorHeight = 10;
         GenerateFloor(floorWidth, floorHeight);
-        DecorateFloor(floorWidth, floorHeight);
+        AstarPath.active.Scan();
+        Floor.RoomsHaveBeenGenerated = true; //let Spawn manager know rooms are created 
         //OLD CODE
         //InitFloor();
         //StartRoomGeneration();
@@ -71,7 +73,12 @@ public class Floor : MonoBehaviour {
 
     // Update is called once per frame
     void Update () {
-		
+		if(InteriorData.databaseHasBeenDownloaded && !floorHasBeenDecorated)
+        {
+            floorHasBeenDecorated = true;
+            debugCanvas.currentDebugCanvas.log("db downloaded, startFloorDecor");
+            DecorateFloor(floorWidth, floorHeight);
+        }
 	}
     public Room FindRoomAtZone(Vector3Int coord)
     {
@@ -150,8 +157,8 @@ public class Floor : MonoBehaviour {
             }
             firstRoom = lowestRoom;//update global reference for other methods 
         }
-        Debug.Log("lowest room is:");
-        Debug.Log(lowestRoom);
+        //Debug.Log("lowest room is:");
+        //Debug.Log(lowestRoom);
         //translate gride such that lowest room aligns with start room 
         Vector3 newGridLocation = new Vector3(-1*lowestRoom.x*72 + xoffset, -1 * lowestRoom.y*72 + yoffset);
         ZonesTilemap.transform.position = newGridLocation;
@@ -594,8 +601,8 @@ public class Floor : MonoBehaviour {
                 }
                 else
                 {
-                    Debug.Log("adding room at: ");
-                    Debug.Log(currentPoint);
+                    //Debug.Log("adding room at: ");
+                    //Debug.Log(currentPoint);
                     OccupiedCoordinates.Add(new Vector3Int(currentPoint.x, currentPoint.y, 0));
                 }
                 currentPoint = new Vector2Int(currentPoint.x, currentPoint.y + increment);//move towards corner 
@@ -1171,7 +1178,7 @@ public class BSPTree
                 }
                 else
                 {
-                    Debug.Log("warning, max splits reached, keeping this node as dormant");
+                    //Debug.Log("warning, max splits reached, keeping this node as dormant");
                     //Debug.Log(child.RegionCoords[0]);
                     //Debug.Log(child.RegionCoords[1]);
                     dormantChildren.Add(child); //retain these but dont try to split again 

@@ -7,10 +7,14 @@ public class PlayerInventory : Inventory {
     [SerializeField] int MaxItemSlots = 10;
 
     [HideInInspector] public List<Item> ToolBarList;//holds items seen within toolbar
-    
+
     //TODO** add a way to limit itemlist size
 
     // Use this for initialization
+    void Awake()
+    {
+        InitItemList();
+    }
     void Start () {
         InitToolBarList();
         InitConsumableArr();

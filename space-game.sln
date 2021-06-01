@@ -9,6 +9,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AstarPathfindingProjectEdit
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Assembly-CSharp-Editor", "Assembly-CSharp-Editor.csproj", "{304DD7D9-89A6-9EF2-536C-FB047562228F}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GoogleMobileAds.Editor", "GoogleMobileAds.Editor.csproj", "{D7BAB998-B995-CF6B-32ED-D7DD96DBE85F}"
+EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PackageToolsEditor", "PackageToolsEditor.csproj", "{86CF3DF7-2089-D384-80AA-21DAE5F98962}"
 EndProject
 Global
@@ -33,6 +35,10 @@ Global
 		{304DD7D9-89A6-9EF2-536C-FB047562228F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{304DD7D9-89A6-9EF2-536C-FB047562228F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{304DD7D9-89A6-9EF2-536C-FB047562228F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D7BAB998-B995-CF6B-32ED-D7DD96DBE85F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D7BAB998-B995-CF6B-32ED-D7DD96DBE85F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D7BAB998-B995-CF6B-32ED-D7DD96DBE85F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D7BAB998-B995-CF6B-32ED-D7DD96DBE85F}.Release|Any CPU.Build.0 = Release|Any CPU
 		{86CF3DF7-2089-D384-80AA-21DAE5F98962}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{86CF3DF7-2089-D384-80AA-21DAE5F98962}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{86CF3DF7-2089-D384-80AA-21DAE5F98962}.Release|Any CPU.ActiveCfg = Release|Any CPU

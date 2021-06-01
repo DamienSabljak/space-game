@@ -26,9 +26,9 @@ public class UI : MonoBehaviour {
 
     private void UpdateText()
     {
-        Consumable.Type c = Consumable.Type.scrap;
+        Consumable.Type c = Consumable.Type.SCRAP;
         HealthUI.text = "Health:" + player.Health;
-        c = Consumable.Type.ammo;
+        c = Consumable.Type.AMMO;
         ammoUI.text = "Ammo:" + player.inventory.consumableArr[(int)c];
     }
 

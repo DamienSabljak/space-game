@@ -107,16 +107,22 @@ MonoBehaviour:
   isGrounded: 1
   facing: 1
   standingOn: {fileID: 0}
-  health: 400
+  health: 200
   FiringFieldMargin: 3
   armsGroup: {fileID: 2505274366091249703}
+  attackType: 0
   projectile: {fileID: 1673873644341846, guid: 967589a042eba814791186fce94dde68, type: 3}
   projSpeed: 25
-  shotCounter: 0
   minShotTime: 0.2
   maxShotTime: 1
+  weaponSpreadAngle: 5
+  timeBetweenBurstShots: 0.1
+  shotsPerBurst: 1
   fireSFX: {fileID: 8300000, guid: eacebe46c44c5c94b87d1f71c1ab6425, type: 3}
   fireSFXVol: 0.108
+  aimingLaser: {fileID: 8230699246608734124, guid: d9467121dd1bfc34198d480722d51c33,
+    type: 3}
+  chargeCoolDowntime: 1
   DeathVFX: {fileID: 1072288115666934, guid: 66beaed06f80ced44939d5caaa26e10c, type: 3}
   deathTime: 1
   deathSFX: {fileID: 8300000, guid: 9626ecfe179a52c498c046e7d75141db, type: 3}

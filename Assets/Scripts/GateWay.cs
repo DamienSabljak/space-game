@@ -38,20 +38,20 @@ public class GateWay : MonoBehaviour {
     public void LoadGame()
     {
         Debug.Log("Loading level 1...");
-        LevelManager.SaveData();//persist info to next scene
-        LevelManager.LoadGame();
+        LevelManager.SavePlayerData();//persist info to next scene
+        LevelManager.LoadStaticGame();
     }
 
     private void LoadShopScene()
     {
-        LevelManager.SaveData();//persist info to next scene
+        LevelManager.SavePlayerData();//persist info to next scene
         Debug.Log(LevelManager.player);
         LevelManager.LoadShopScene();
     }
 
     public void LoadMainMenu()
     {
-        LevelManager.LoadMainMenu();
+        LevelManager.LoadStaticMainMenu();
     }
 
     public void LoadEndScene()

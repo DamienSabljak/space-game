@@ -5,7 +5,8 @@ public class InteriorDecorator : MonoBehaviour
 {   //this class is an extentsion to the floor class, providing methods for decorating the interior of the floor 
     // Start is called before the first frame update
     int[,] zonesImg;//holds an "image like" reference to the occupied zones, for use of morphological operators 
-    int[,] decoratedImg;//image which holds room coordinates that have been already decorated by a template (such as corridor)
+    int[,] alreadyDecoratedImg;//image which holds room coordinates that have been already decorated by a template (such as corridor)
+    [SerializeField] InteriorData database;
     void Start()
     {
         
@@ -19,15 +20,13 @@ public class InteriorDecorator : MonoBehaviour
     public void ConvertOccupiedZonesToImage(List<Vector3Int> occupiedZones, int width, int height)
     {   //converts the OccupiedZones list into a 2D "Image" for decorator methods
         zonesImg = new int[height+1, width+1];//initialize to zero, width and height are inclusive (+1)
-        decoratedImg = new int[height+1, width+1];//initialize to zero, width and height are inclusive (+1)
+        alreadyDecoratedImg = new int[height+1, width+1];//initialize to zero, width and height are inclusive (+1)
         foreach (Vector3Int coord in occupiedZones)
         {
             zonesImg[coord.y,coord.x] = 1;
         }
-        Debug.Log("ZonesImg:");
-        PrintImg(zonesImg);
-
-        
+        //Debug.Log("ZonesImg:");
+        //PrintImg(zonesImg);  
     }
     public static void PrintImg(int[,] img)
     {
@@ -48,11 +47,12 @@ public class InteriorDecorator : MonoBehaviour
     }
     public void DecorateFloor(List<BSPNode> treeLeaves)
     {   //tree leaves define which rooms are in which zones 
-
+        debugCanvas.currentDebugCanvas.log("DecorateFloor called");
         //generation order:
         //choose random zones 
         AssignRegionsAsSpecialZones(treeLeaves);
         //decorate template matching areas
+        DecorateStartingRoom(treeLeaves[0]);
         DecorateHorizontalCoridors();
         //decorate zones
         foreach (BSPNode leaf in treeLeaves)
@@ -65,6 +65,21 @@ public class InteriorDecorator : MonoBehaviour
                 case (InteriorData.ZoneType.ENGINEERING):
                     DecorateEngineeringZone(leaf);
                     break;
+                case (InteriorData.ZoneType.ARMOURY):
+                    DecorateArmouryZone(leaf);
+                    break;
+                case (InteriorData.ZoneType.MEDICAL):
+                    DecorateMedZone(leaf);
+                    break;
+                case (InteriorData.ZoneType.COMMAND):
+                    DecorateCommandZone(leaf);
+                    break;
+                case (InteriorData.ZoneType.HANGAR):
+                    DecorateHangarZone(leaf);
+                    break;
+                default:
+                    Debug.Log("******* WARNING: DECORATE METHOD FOR GIVEN ZONE NOT SPECIFIED*********");
+                    break;
             }
         }
         
@@ -74,49 +89,106 @@ public class InteriorDecorator : MonoBehaviour
         Debug.Log("Decorating Normal Zone");
         //populate random furniture 
         //NEED TO IMPLEMENT 
-        PlaceWallsInZone(leaf);
+        DecorateRoomsByZone(leaf);
     }
     public void DecorateEngineeringZone(BSPNode leaf)
     {
         //decorate walls
-        PlaceWallsInZone(leaf);
+        DecorateRoomsByZone(leaf);
     }
-
+    public void DecorateArmouryZone(BSPNode leaf)
+    {
+        //decorate walls
+        DecorateRoomsByZone(leaf);
+    }
+    public void DecorateMedZone(BSPNode leaf)
+    {
+        //decorate walls
+        DecorateRoomsByZone(leaf);
+    }
+    public void DecorateCommandZone(BSPNode leaf)
+    {
+        //decorate walls
+        DecorateRoomsByZone(leaf);
+    }
+    public void DecorateHangarZone(BSPNode leaf)
+    {
+        //decorate walls
+        DecorateRoomsByZone(leaf);
+    }
+    public void DecorateStartingRoom(BSPNode anyLeaf)
+    {   //decorate starting room 
+        //note any leaf is just passed to DetectNeighborZones but doesnt really matter
+        Vector3Int roomCoords =  GetComponent<Floor>().firstRoom;
+        alreadyDecoratedImg[roomCoords.y, roomCoords.x] = 1;//let other decorators know this room is decorated 
+        //place walls 
+        InteriorData.ZoneType[] neighborZones = DetectNeighborZones((Vector2Int)roomCoords, anyLeaf);
+        for (int neighbor = 0; neighbor < neighborZones.Length; neighbor++)
+        {
+            if(neighbor == (int) WallEntry.Side.BOTTOM)
+            {   //entrance is always from bottom 
+                //place 2D wall
+                WallEntry wall = SelectRandomWallFromCriteria((WallEntry.Side)neighbor, WallEntry.OpeningType.SINGLEDOOR, InteriorData.ZoneType.NORMAL);//neighbor holds side info 
+                PlaceTilemapAtLocation(wall.pathToPrefab, (Vector2Int)roomCoords);
+            }
+            else if (neighborZones[neighbor] == InteriorData.ZoneType.OUTSIDE)
+            {
+                //place closed wall (normal type, but can have custom later)
+                WallEntry wall = SelectRandomWallFromCriteria((WallEntry.Side)neighbor, WallEntry.OpeningType.CLOSED, InteriorData.ZoneType.NORMAL);//neighbor holds side info 
+                PlaceTilemapAtLocation(wall.pathToPrefab, (Vector2Int) roomCoords);
+            }
+            else
+            {
+                //place 2D wall
+                WallEntry wall = SelectRandomWallFromCriteria((WallEntry.Side)neighbor, WallEntry.OpeningType.DOUBLEDOOR, InteriorData.ZoneType.NORMAL);//neighbor holds side info 
+                PlaceTilemapAtLocation(wall.pathToPrefab, (Vector2Int)roomCoords);
+            }
+        }
+        //place floors, furniture
+        FloorEntry floor = SelectRandomFloorFromCriteria(InteriorData.ZoneType.NORMAL);
+        PlaceTilemapAtLocation(floor.pathToPrefab, (Vector2Int) roomCoords);
+        FurnitureEntry furniture = SelectRandomFurnitureFromCriteria(InteriorData.ZoneType.AIRLOCK);
+        PlaceTilemapAtLocation(furniture.pathToPrefab, (Vector2Int) roomCoords);
+        //need to create furniture prefab
+    }
     public void DecorateHorizontalCoridors()
     {
         //first Detect Corridors 
         ConvolutionKernel HorizontalCorridorKernel = new ConvolutionKernel(InteriorData.HorizontalCorridorHitMissStruct);
         int[,] img_hitMiss = HorizontalCorridorKernel.HitMissConvolveImage(zonesImg);//create image of matching corridor zones 
-        print("****** HIT MISS IMG *****");
-        PrintImg(img_hitMiss);
+        //print("****** HIT MISS IMG *****");
+        //PrintImg(img_hitMiss);
         for (int row = 0; row < img_hitMiss.GetLength(0); row++)
         {
             for (int col = 0; col < img_hitMiss.GetLength(1); col++)
             {
-                if(img_hitMiss[row,col] == 1)
+                if(img_hitMiss[row,col] == 1 && alreadyDecoratedImg[row,col] == 0)
                 {   //room is a part of a corridor 
-                    decoratedImg[row, col] = 1;//let other decorators know this room is decorated 
+                    alreadyDecoratedImg[row, col] = 1;//let other decorators know this room is decorated 
                     //place walls, decorations 
                     //top wall
                     WallEntry  wall = SelectRandomWallFromCriteria(WallEntry.Side.TOP, WallEntry.OpeningType.CLOSED, InteriorData.ZoneType.CORRIDOR);
-                    PlaceWallAtLocation(wall.pathToPrefab, new Vector2Int(col, row));
+                    PlaceTilemapAtLocation(wall.pathToPrefab, new Vector2Int(col, row));
                     //bot wall
                     wall = SelectRandomWallFromCriteria(WallEntry.Side.BOTTOM, WallEntry.OpeningType.CLOSED, InteriorData.ZoneType.NORMAL);
-                    PlaceWallAtLocation(wall.pathToPrefab, new Vector2Int(col, row));
+                    PlaceTilemapAtLocation(wall.pathToPrefab, new Vector2Int(col, row));
+                    //floors
+                    FloorEntry floor = SelectRandomFloorFromCriteria(InteriorData.ZoneType.NORMAL);
+                    PlaceTilemapAtLocation(floor.pathToPrefab, new Vector2Int(col, row));
                 }
             }
         }
     }
-    private void PlaceWallsInZone(BSPNode leaf)
+    private void DecorateRoomsByZone(BSPNode leaf)
     {
-        //create walls
+        //create walls and flooring 
         int STARTCOORD = 0;
         int ENDCOORD = 1;
         for (int row = leaf.RegionCoords[STARTCOORD].y; row <= leaf.RegionCoords[ENDCOORD].y; row++)
         {
             for (int col = leaf.RegionCoords[STARTCOORD].x; col <= leaf.RegionCoords[ENDCOORD].x; col++)
             {
-                if (ImgAtCoordIsOccupied(new Vector2Int(col, row)) && decoratedImg[row,col] != 1)
+                if (ImgAtCoordIsOccupied(new Vector2Int(col, row)) && alreadyDecoratedImg[row,col] != 1)
                 {   //room exists and hasnt yet been decorated 
                     
                     //Debug.Log("now bulding walls for coords:");
@@ -131,7 +203,8 @@ public class InteriorDecorator : MonoBehaviour
                         {   //neighbor is outside 
                             //place Closed Wall
                             WallEntry wall = SelectRandomWallFromCriteria((WallEntry.Side)neighbor, WallEntry.OpeningType.CLOSED, leaf.zoneType);//neighbor holds side info 
-                            PlaceWallAtLocation(wall.pathToPrefab, new Vector2Int(col, row));
+                            PlaceTilemapAtLocation(wall.pathToPrefab, new Vector2Int(col, row));
+                            
                         }
                         else if (neighborZones[neighbor] == leaf.zoneType)
                         {
@@ -141,9 +214,14 @@ public class InteriorDecorator : MonoBehaviour
                         {   //neighbour is a different zone and not outside 
                             //place 1D wall 
                             WallEntry wall = SelectRandomWallFromCriteria((WallEntry.Side)neighbor, WallEntry.OpeningType.SINGLEDOOR, leaf.zoneType);
-                            PlaceWallAtLocation(wall.pathToPrefab, new Vector2Int(col, row));
+                            PlaceTilemapAtLocation(wall.pathToPrefab, new Vector2Int(col, row));
                         }
                     }
+                    //flooring and furniture
+                    FloorEntry floor = SelectRandomFloorFromCriteria(leaf.zoneType);
+                    PlaceTilemapAtLocation(floor.pathToPrefab, new Vector2Int(col, row));
+                    FurnitureEntry furniture = SelectRandomFurnitureFromCriteria(leaf.zoneType);
+                    PlaceTilemapAtLocation(furniture.pathToPrefab, new Vector2Int(col, row));
                 }
             }
         }
@@ -247,11 +325,25 @@ public class InteriorDecorator : MonoBehaviour
 
     public WallEntry SelectRandomWallFromCriteria(WallEntry.Side side, WallEntry.OpeningType openingType, InteriorData.ZoneType zoneType)
     {   //select a random wall entry which meets specified criteria 
-        List<WallEntry>  possibleWalls = InteriorData.LoadWallsFromCriteria(side, openingType, zoneType);
-        int randIndex = UnityEngine.Random.Range(0, possibleWalls.Count - 1);
+        List<WallEntry>  possibleWalls = database.LoadWallsFromCriteria(side, openingType, zoneType);
+        int randIndex = UnityEngine.Random.Range(0, possibleWalls.Count);
         return possibleWalls[randIndex];
     }
-    public void PlaceWallAtLocation(string pathToWallPrefab, Vector2Int location)
+
+    public FloorEntry SelectRandomFloorFromCriteria(InteriorData.ZoneType zoneType)
+    {   //select a random wall entry which meets specified criteria 
+        List<FloorEntry> possibleFloors = database.LoadFloorsFromCriteria(zoneType);
+        int randIndex = UnityEngine.Random.Range(0, possibleFloors.Count);
+        return possibleFloors[randIndex];
+    }
+    public FurnitureEntry SelectRandomFurnitureFromCriteria(InteriorData.ZoneType zoneType)
+    {   //select a random wall entry which meets specified criteria 
+        List<FurnitureEntry> possibleFurniture = database.LoadFurnitureFromCriteria(zoneType);
+        int randIndex = UnityEngine.Random.Range(0, possibleFurniture.Count);
+        return possibleFurniture[randIndex];
+    }
+
+    public void PlaceTilemapAtLocation(string pathToWallPrefab, Vector2Int location)
     {
         //Debug.Log("placing wall at location:");
         //Debug.Log(pathToWallPrefab);
@@ -260,7 +352,7 @@ public class InteriorDecorator : MonoBehaviour
         Room room = GetComponent<Floor>().FindRoomAtZone(new Vector3Int(location.x, location.y,0));
         //Debug.Log(room.gameObject);
         //access prefab through path name 
-        string path = "RoomLayouts/Walls/" + pathToWallPrefab;//relative path from all resources folders 
+        string path = "RoomLayouts/" + pathToWallPrefab;//relative path from all resources folders 
         
         UnityEngine.Object pPrefab = Resources.Load(path); // note: not .prefab!
         //instantiate and center prefab 
@@ -276,25 +368,31 @@ public class InteriorDecorator : MonoBehaviour
     public void ConstructSimpleRoom(InteriorData.ZoneType zoneType, Vector2Int location)
     {
         //place 4 walls 
-        List<WallEntry> bottomWalls =  InteriorData.LoadWallsFromCriteria(WallEntry.Side.BOTTOM, WallEntry.OpeningType.CLOSED, InteriorData.ZoneType.NORMAL);
-        List<WallEntry> leftWalls =  InteriorData.LoadWallsFromCriteria(WallEntry.Side.LEFT, WallEntry.OpeningType.CLOSED, InteriorData.ZoneType.NORMAL);
-        List<WallEntry> rightWalls =  InteriorData.LoadWallsFromCriteria(WallEntry.Side.RIGHT, WallEntry.OpeningType.CLOSED, InteriorData.ZoneType.NORMAL);
-        List<WallEntry> topWalls =  InteriorData.LoadWallsFromCriteria(WallEntry.Side.TOP, WallEntry.OpeningType.CLOSED, InteriorData.ZoneType.NORMAL);
+        List<WallEntry> bottomWalls =  database.LoadWallsFromCriteria(WallEntry.Side.BOTTOM, WallEntry.OpeningType.CLOSED, InteriorData.ZoneType.NORMAL);
+        List<WallEntry> leftWalls = database.LoadWallsFromCriteria(WallEntry.Side.LEFT, WallEntry.OpeningType.CLOSED, InteriorData.ZoneType.NORMAL);
+        List<WallEntry> rightWalls = database.LoadWallsFromCriteria(WallEntry.Side.RIGHT, WallEntry.OpeningType.CLOSED, InteriorData.ZoneType.NORMAL);
+        List<WallEntry> topWalls = database.LoadWallsFromCriteria(WallEntry.Side.TOP, WallEntry.OpeningType.CLOSED, InteriorData.ZoneType.NORMAL);
         //note: order of placement will affect rendering 
-        PlaceWallAtLocation(leftWalls[0].pathToPrefab, location);//- for now pick first choice
-        PlaceWallAtLocation(rightWalls[0].pathToPrefab, location);//- for now pick first choice
-        PlaceWallAtLocation(bottomWalls[0].pathToPrefab, location);//- for now pick first choice
-        PlaceWallAtLocation(topWalls[0].pathToPrefab, location);//- for now pick first choice
+        PlaceTilemapAtLocation(leftWalls[0].pathToPrefab, location);//- for now pick first choice
+        PlaceTilemapAtLocation(rightWalls[0].pathToPrefab, location);//- for now pick first choice
+        PlaceTilemapAtLocation(bottomWalls[0].pathToPrefab, location);//- for now pick first choice
+        PlaceTilemapAtLocation(topWalls[0].pathToPrefab, location);//- for now pick first choice
     }
     public void AssignRegionsAsSpecialZones(List<BSPNode> treeLeaves)
     {   //assign zones such as hospital, engineering etc to regions determined by leaves of node 
-        int randLeaf = UnityEngine.Random.Range(0, treeLeaves.Count);
+        
         int numZones = InteriorData.ZoneType.GetNames(typeof(InteriorData.ZoneType)).Length;
         int randZone = UnityEngine.Random.Range(0, numZones);
         //assign random zone 
+        for(int i=0; i<treeLeaves.Count && i<5;i++)
+        {
+            int randLeaf = UnityEngine.Random.Range(0, treeLeaves.Count);
+            treeLeaves[randLeaf].zoneType = (InteriorData.ZoneType) i+1;//NOTE: this has been hard coded to only assign zones 1-5 
+            Debug.Log("assigned leaf " + randLeaf.ToString() + " as zone " + ((InteriorData.ZoneType)(i + 1)).ToString());
+        }
         //treeLeaves[randLeaf].zoneType = (InteriorData.ZoneType)randZone;
-        treeLeaves[randLeaf].zoneType = InteriorData.ZoneType.ENGINEERING;
-        Debug.Log("assigned leaf " + randLeaf.ToString() + " as engineering zone ");
+        //treeLeaves[randLeaf].zoneType = InteriorData.ZoneType.ENGINEERING;
+        //Debug.Log("assigned leaf " + randLeaf.ToString() + " as engineering zone ");
     }
 
 
@@ -322,15 +420,15 @@ class ConvolutionKernel
             {
                 int row_pad = row + padAmt; 
                 int col_pad = col + padAmt;
-                Debug.Log("PadAmt");
-                Debug.Log(padAmt);
-                Debug.Log("now inspecting pixel: " + col.ToString() + "," + row.ToString());
+                //Debug.Log("PadAmt");
+                //Debug.Log(padAmt);
+                //Debug.Log("now inspecting pixel: " + col.ToString() + "," + row.ToString());
                 //InteriorDecorator.PrintImg(kernel);
-                Debug.Log("subImage:");
-                InteriorDecorator.PrintImg(CreateSubsetMatrix(img_padded, row_pad - padAmt, row_pad + padAmt, col_pad - padAmt, col_pad + padAmt));
+                //Debug.Log("subImage:");
+                //InteriorDecorator.PrintImg(CreateSubsetMatrix(img_padded, row_pad - padAmt, row_pad + padAmt, col_pad - padAmt, col_pad + padAmt));
                 if (HitMissConvolve(       CreateSubsetMatrix(img_padded, row_pad - padAmt, row_pad + padAmt, col_pad - padAmt, col_pad + padAmt)))
                 {
-                    Debug.Log("Match!");
+                    //Debug.Log("Match!");
                     img_hitmiss[row, col] = 1;
                 }
             }
@@ -347,7 +445,7 @@ class ConvolutionKernel
             {
                 int row_sub = row + y_start;
                 int col_sub = col + x_start;
-                Debug.Log(row_sub.ToString() + "  " + col_sub.ToString());
+                //Debug.Log(row_sub.ToString() + "  " + col_sub.ToString());
                 //Debug.Log("img dimensions: " + img.GetLength(0).ToString() +" "+ img.GetLength(1).ToString());
                 //Debug.Log("row_sub, col_sub:  " +row_sub.ToString() + " "+ col_sub.ToString() );
                 img_sub[row, col] = img[row_sub, col_sub];

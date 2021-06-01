@@ -12,6 +12,7 @@ public class Player : Character {
     [SerializeField] float padding =1f;//distance from camera allowed when camera static
     [SerializeField] GameObject armsgroup;//refference to arms GROUP not just sprite 
     [SerializeField] GameObject weaponSprite;//sprite refference to weapon for animation
+    [SerializeField] GameObject startingWeapon;
     [Header("Projectile")]
     [SerializeField] GameObject CurrentToolBarItem;//MAKE SURE declared gameobject to use general prefab
     [SerializeField] GameObject projectile;
@@ -28,12 +29,19 @@ public class Player : Character {
     [SerializeField] [Range(0, 1)] float fireSFXVol = 0.25f;
     [SerializeField] AudioClip deathSFX;
     [SerializeField] [Range(0, 1)] float deathSFXVol = 0.7f;
+    [SerializeField] MobileControls mobileControls;
 
     public PlayerInventory inventory;
+    public bool startingWeaponEquipped = false;
 
     Coroutine firingCoroutine; 
     float xMin, xMax, yMin, yMax;
     public List<Modifier> ModifiersList;//holds information on current modifiers affecting the player
+    
+    //holds current control information, abstracted from input (mouse vs touch) 
+    public Vector2 pointingTowards = new Vector2(0, 0);//vector from player to pointing towards 
+    public Vector2 movingTowards = new Vector2(0, 0);
+
 
     //****START/UPDATE**** 
     public void OnMouseDown()
@@ -56,7 +64,6 @@ public class Player : Character {
         }
         UpdateCurrentToolBarItem();
         initInventory();
-        
 
     }
 
@@ -64,7 +71,14 @@ public class Player : Character {
     void Update () {
         if (Level.pause != true)
         {
+            if(startingWeaponEquipped == false)
+            {
+                EquipStartingWeapon();
+                startingWeaponEquipped = true;
+            }
             Move();
+            UpdatePointingTowards();
+            UpdateMovingTowards();
             SetScaleByFacing();
             Fire();
             Interact();
@@ -75,10 +89,49 @@ public class Player : Character {
             RotateArms();//must be after shift camera, causes glitches 
             UpdateModifiers();
 
-            LevelManager.PlayerScore = this.inventory.consumableArr[(int) Consumable.Type.scrap] + this.inventory.consumableArr[(int)Consumable.Type.money];
+            LevelManager.PlayerScore = this.inventory.consumableArr[(int) Consumable.Type.SCRAP] + this.inventory.consumableArr[(int)Consumable.Type.MONEY];
         }
     }
 
+    private void UpdatePointingTowards()
+    {   //method which updates controls, depending on wether keyboard or touch controls are used 
+
+        Vector2 mousePos = new Vector2(0, 0);
+        Vector2 touchPos = new Vector2(0, 0);
+#if UNITY_EDITOR_WIN
+        mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition) - transform.position;
+#endif
+#if UNITY_ANDROID
+        touchPos = MobileControls.inputValues[MobileControls.RIGHT];
+#endif
+        if (mousePos.x == 0 && mousePos.y == 0)
+        {   //no mousePos given, use android input 
+            mousePos = new Vector3(touchPos.x, touchPos.y, 0);
+        }
+        pointingTowards = mousePos;//update class value
+    }
+
+    private void UpdateMovingTowards()
+    {
+        float deltaX = 0.0f; float deltaY = 0.0f;
+#if UNITY_EDITOR_WIN
+        //Debug.Log("Unity Editor");
+        deltaX = Input.GetAxis("Horizontal") * Time.deltaTime * MoveSpeed;
+        deltaY = Input.GetAxis("Vertical") * Time.deltaTime * MoveSpeed;
+#endif
+#if UNITY_ANDROID
+        //NOTEE!! android directive will run even in editor 
+        //Debug.Log("android");
+        if (deltaX == 0 && deltaY == 0)
+        {   //dont run this code if unity editor code ran 
+            //use left input region for move controls 
+            Vector2 direction = MobileControls.inputValues[MobileControls.LEFT].normalized;
+            deltaX = direction.x * Time.deltaTime * MoveSpeed;
+            deltaY = direction.y * Time.deltaTime * MoveSpeed;
+        }
+#endif
+        movingTowards = new Vector2(deltaX, deltaY);
+    }
     private void initInventory()
     {
         Debug.Log("Player: creating new inventory object");
@@ -88,6 +141,11 @@ public class Player : Character {
             Debug.Log("WARNING: Player must have inventory script attatched");
     }
 
+    private void EquipStartingWeapon()
+    {
+        inventory.AddItem(startingWeapon.GetComponent<Item>());
+        selecttoolbaritem(0);
+    }
     private void SetUpMoveBoundaries()
     {
         Camera gameCamera = Camera.main;
@@ -105,10 +163,11 @@ public class Player : Character {
         {
             //get player input
             Rigidbody2D body = gameObject.GetComponent<Rigidbody2D>();
-            var deltaX = Input.GetAxis("Horizontal") * Time.deltaTime * MoveSpeed;
-            var deltaY = Input.GetAxis("Vertical") * Time.deltaTime * MoveSpeed;
+
+            //deltaX = Input.GetAxis("Horizontal") * Time.deltaTime * MoveSpeed;
+            //deltaY = Input.GetAxis("Vertical") * Time.deltaTime * MoveSpeed;
             //set animations
-            if(Input.GetAxis("Horizontal") != 0 || Input.GetAxis("Vertical") != 0)
+            if (movingTowards.magnitude>0)
             {
                 GetComponent<Animator>().SetBool("walking", true);
             }
@@ -117,20 +176,9 @@ public class Player : Character {
                 GetComponent<Animator>().SetBool("walking", false);
             }
 
-            //set new facing
-            //if (deltaY > 0)
-                //facing = direction.UP;
-            //else if (deltaY < 0)
-                //facing = direction.DOWN;
-            //if (deltaX > 0)
-                //facing = direction.RIGHT;
-           // else if (deltaX < 0)
-                //facing = direction.LEFT;
-
-            // var newXPos = Mathf.Clamp(transform.position.x + deltaX,xMin,xMax);//use with setupboundaries
-            // var newYPos = Mathf.Clamp(transform.position.y + deltaY,yMin,yMax);
-            var newXPos = transform.position.x + deltaX;
-            var newYPos = transform.position.y + deltaY;
+            Vector2 moveVec = movingTowards.normalized * Time.deltaTime * MoveSpeed;
+            float newXPos = transform.position.x + moveVec.x;
+            float newYPos = transform.position.y + moveVec.y;
 
             body.MovePosition(new Vector2(newXPos, newYPos));
         }
@@ -139,15 +187,17 @@ public class Player : Character {
 
     private void RotateArms()
     {   //rotate arms and weapon to face where mouse is looking 
-        Vector3 mousePos = Input.mousePosition;
+
+        Vector2 pointDir = pointingTowards.normalized;
         //compensate for weird error with negative scale causing camera jump
         if (facing == direction.LEFT)
         {
-            mousePos = new Vector3(-1 * mousePos.x, mousePos.y, mousePos.z);
+            pointDir = new Vector3(-1 * pointDir.x, pointDir.y, 0);
         }
-        Vector3 mouseDir = Camera.main.ScreenToWorldPoint(Input.mousePosition) - transform.position;//vector from player to mouse
-        float angle = Vector3.Angle(new Vector3(1, 0, 0), mouseDir);//take angle relative to positive x axis, only from 0-180 deg
-        if(mouseDir.y < 0)
+
+        
+        float angle = Vector3.Angle(new Vector3(1, 0, 0), pointDir);//take angle relative to positive x axis, only from 0-180 deg
+        if(pointDir.y < 0)
         {
             angle *= -1; //compensate for lost information from "arctan" 
         }
@@ -169,27 +219,24 @@ public class Player : Character {
         if (Input.GetButtonDown("Interact"))
         {
             Debug.Log("interact button pressed");
-            if(standingOn != null)
-            { 
+            if (standingOn != null)
+            {
                 Debug.Log("handling interact:");
-                HandleInteract(standingOn);
+                HandleInteract(standingOn, true);
             }
         }
 
-
     }
-
-    
     private void ShiftCamera()
     {   //Shifts camera based on mouse posiion
         Transform cameraPos = transform.Find("Main Camera");
-        Vector3 mousePos = Input.mousePosition;
+
         //compensate for weird error with negative scale causing camera jump
         if (facing == direction.LEFT)
         {
-            mousePos = new Vector3(-1*mousePos.x, mousePos.y, mousePos.z);
+            pointingTowards = new Vector3(-1*pointingTowards.x, pointingTowards.y, 0);
         }
-        cameraPos.localPosition = (mousePos - new Vector3(-1.6f,-1.6f))*CameraShiftScale;
+        cameraPos.localPosition = ( ((Vector3)pointingTowards) - new Vector3(-1.6f,-1.6f))*CameraShiftScale;
     }
 
     private void SelectToolBarItem()
@@ -212,7 +259,7 @@ public class Player : Character {
         }
     }
 
-    private void selecttoolbaritem(int index)
+    public void selecttoolbaritem(int index)
     {//helper method used in method above
         Debug.Log("hotkey " +((int) index+1)+ " selected");
         if (inventory.ToolBarList[index] == CurrentToolBarItem)
@@ -260,10 +307,16 @@ public class Player : Character {
     private void Fire()
     {
         if (CurrentToolBarItem != null)
-            CurrentToolBarItem.GetComponent<Weapon>().Fire();
+        {   //player has weapon equipped 
+            CurrentToolBarItem.GetComponent<Weapon>().HandleFiring();
+        }
         else
+        {   //player has no weapon equipped 
             if (Input.GetButtonDown("Fire1"))
-            Debug.Log("no weapon equipped!");
+            {
+                //Debug.Log("no weapon equipped!");
+            }
+        }
     }
 
     override public void HandleDamage(DamageDealer damageDealer)
@@ -286,9 +339,9 @@ public class Player : Character {
     }
 
     public override void Die()
-    {
-        //Destroy(gameObject); //find a way for this to not cause errors 
+    {   //called when player is defeated 
         AudioSource.PlayClipAtPoint(deathSFX, Camera.main.transform.position, deathSFXVol);
+        PersistentData.IncrementScrapAmount(this.inventory.consumableArr[(int) Consumable.Type.SCRAP]);//save persistent scrap amount 
         SceneManager.LoadScene("EndScene");
     }
     
@@ -316,7 +369,11 @@ public class Player : Character {
             Interactable interact = other.gameObject.GetComponent<Interactable>();
             standingOn = interact;
             //Debug.Log("standing on interactable");
-            HandleInteract(interact);
+            if (interact.WaitForInput)
+            {
+                mobileControls.UseButton.SetActive(true);
+            }
+            HandleInteract(interact, false);
         }
     }
 
@@ -325,6 +382,7 @@ public class Player : Character {
         if(standingOn == other.gameObject.GetComponent<Interactable>())
         {
             standingOn = null;
+            mobileControls.UseButton.SetActive(false);
             //Debug.Log("Not standing on anymore");   
         }
 
@@ -332,12 +390,12 @@ public class Player : Character {
 
 //****HANDLERS****
 
-    private void HandleInteract(Interactable interact)
+    public void HandleInteract(Interactable interact, bool inputGiven)
     {
         //Debug.Log("welcome to interact method!");
         Debug.Log(interact && interact.WaitForInput && Input.GetButtonDown("Interact"));
         //GameObject parent = interact.transform.parent.gameObject;//find out what the interactable is attatched to 
-        if (interact.WaitForInput && Input.GetButtonDown("Interact"))//see if interaction requires user input
+        if (interact.WaitForInput && inputGiven)//see if interaction requires user input
         {
             interact.HandleInteractAction(this.gameObject);
             //Debug.Log("INTERACTT");

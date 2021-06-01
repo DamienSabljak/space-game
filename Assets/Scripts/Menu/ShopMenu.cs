@@ -40,7 +40,7 @@ public class ShopMenu : Menu
         foreach (GameObject panel in itempanels)
         {
             panel.GetComponent<ShopPanel>().item = vendor.availableItems[panelIndex].GetComponent<Item>();
-            panel.GetComponent<ShopPanel>().itemName.text = vendor.availableItems[panelIndex].name;
+            panel.GetComponent<ShopPanel>().itemName.text = vendor.availableItems[panelIndex].GetComponent<Item>().ShopName;
             panel.GetComponent<ShopPanel>().itemCost.text = vendor.availableItems[panelIndex].GetComponent<Item>().baseCost.ToString();
             panel.GetComponent<ShopPanel>().itemImage.sprite = vendor.availableItems[panelIndex].GetComponent<SpriteRenderer>().sprite;
             panelIndex++;
@@ -50,17 +50,17 @@ public class ShopMenu : Menu
     // Update is called once per frame
     void Update()
     {
-        buyAmmoText.text   = vendor.ConsumablesCostArr[(int)Consumable.Type.ammo].ToString();
-        buyHealthText.text = vendor.ConsumablesCostArr[(int)Consumable.Type.health].ToString();
+        buyAmmoText.text   = vendor.ConsumablesCostArr[(int)Consumable.Type.AMMO].ToString();
+        buyHealthText.text = vendor.ConsumablesCostArr[(int)Consumable.Type.HEALTH].ToString();
     }
 
     public void OnBuyItem(int itemPos)
     {   //handles the buy button on item panels
         Debug.Log("OnBuyItem method called");
         int itemCost = int.Parse(itempanels[itemPos].GetComponent<ShopPanel>().itemCost.text);//pull from UI to make sure value is always what player sees 
-        if (itemCost <= vendor.CustomerInv.consumableArr[(int)Consumable.Type.money] || debug_freeStuff)
+        if (itemCost <= vendor.CustomerInv.consumableArr[(int)Consumable.Type.MONEY] || debug_freeStuff)
         {   //remove money and add item
-            vendor.CustomerInv.consumableArr[(int)Consumable.Type.money] -= itemCost;
+            vendor.CustomerInv.consumableArr[(int)Consumable.Type.MONEY] -= itemCost;
             ((PlayerInventory)vendor.CustomerInv).AddItem(Instantiate(itempanels[itemPos].GetComponent<ShopPanel>().item));//cast to override parent method 
             //disable button and change appearance of panel
             itempanels[itemPos].GetComponent<ShopPanel>().buybutton.interactable = false;
@@ -73,30 +73,30 @@ public class ShopMenu : Menu
     public void OnBuyConsumable(string consumable_string)
     {//handles the buy button on consumables 
         //convert string to enum
-        Consumable.Type consumableType = Consumable.Type.money;//should never be money 
-        if      (consumable_string == "ammo") {   consumableType = Consumable.Type.ammo; }
-        else if (consumable_string == "health") { consumableType = Consumable.Type.health; }
+        Consumable.Type consumableType = Consumable.Type.MONEY;//should never be money 
+        if      (consumable_string == "ammo") {   consumableType = Consumable.Type.AMMO; }
+        else if (consumable_string == "health") { consumableType = Consumable.Type.HEALTH; }
         //determine cost
         Debug.Log("OnBuyConsumable method called");
         int itemCost = 0;
-        if (consumableType == Consumable.Type.ammo)
+        if (consumableType == Consumable.Type.AMMO)
         {
             itemCost = int.Parse(buyAmmoText.text);//pull from UI to make sure value is always what player sees 
         }
-        else if(consumableType == Consumable.Type.health)
+        else if(consumableType == Consumable.Type.HEALTH)
         {
             itemCost = int.Parse(buyHealthText.text);//pull from UI to make sure value is always what player sees 
         }
         else { Debug.Log("Warning: onBuyConsumable() couldnt determine item cost, setting it to free!");}
 
-        if (itemCost <= vendor.CustomerInv.consumableArr[(int)Consumable.Type.money] || debug_freeStuff)
+        if (itemCost <= vendor.CustomerInv.consumableArr[(int)Consumable.Type.MONEY] || debug_freeStuff)
         {
             //remove money and add consumables 
             Debug.Log("adding consumable");
             Debug.Log(Consumable.numTypes);
-            vendor.CustomerInv.consumableArr[(int)Consumable.Type.money] -= itemCost;
-            if(consumableType == Consumable.Type.ammo) { vendor.CustomerInv.consumableArr[(int)consumableType] += ammoPerPurchase; }
-            else if (consumableType == Consumable.Type.health) { ((Player) vendor.Customer).Health += 10; }
+            vendor.CustomerInv.consumableArr[(int)Consumable.Type.MONEY] -= itemCost;
+            if(consumableType == Consumable.Type.AMMO) { vendor.CustomerInv.consumableArr[(int)consumableType] += ammoPerPurchase; }
+            else if (consumableType == Consumable.Type.HEALTH) { ((Player) vendor.Customer).Health += 10; }
             else                                       { vendor.CustomerInv.consumableArr[(int)consumableType] += 1; }
             
         }

@@ -20,7 +20,6 @@ public class ToolBar : MonoBehaviour {
             player = LevelManager.player.gameObject;
         }
 	}
-
     private void InitItemBoxList()
     {
         //add each Item box to list for accessing
@@ -40,7 +39,6 @@ public class ToolBar : MonoBehaviour {
         UpdateMoneyCount();
 
     }
-
     public void UpdateItemBox(Item item, int index)
     {
         Image boxImage = ItemBoxList[index].transform.GetChild(0).GetComponent<Image>();
@@ -60,12 +58,15 @@ public class ToolBar : MonoBehaviour {
     
     public void UpdateScrapCount()
     {
-        scrapCount.GetComponent<Text>().text = player.GetComponent<PlayerInventory>().consumableArr[(int) Consumable.Type.scrap].ToString();
+        scrapCount.GetComponent<Text>().text = player.GetComponent<PlayerInventory>().consumableArr[(int) Consumable.Type.SCRAP].ToString();
     }
     public void UpdateMoneyCount()
     {
-        moneyCount.GetComponent<Text>().text = player.GetComponent<PlayerInventory>().consumableArr[(int)Consumable.Type.money].ToString();
+        moneyCount.GetComponent<Text>().text = player.GetComponent<PlayerInventory>().consumableArr[(int)Consumable.Type.MONEY].ToString();
     }
-
+    public void PressToSelectToolBarItem(int index)
+    {//method called by tool bar icons (buttons) to swap to that weapon
+        Level.CurrentLevel.currentPlayer.selecttoolbaritem(index);
+    }
 
 }

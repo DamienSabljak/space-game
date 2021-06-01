@@ -5,13 +5,20 @@ using UnityEngine;
 public class Character : MonoBehaviour {
     [SerializeField] public WorldText overheadtext;
     [SerializeField] public float MoveSpeed = 10f;
-
-    public enum direction { LEFT, RIGHT, UP, DOWN };
-    public enum State { IDLE, CHASING, ATTACKING };//states used in state machines 
     public State currentState;
     public bool isGrounded = true;
     public direction facing = direction.RIGHT;
     [HideInInspector] public Interactable standingOn;//holds info on what field character is standing in
+
+    public enum direction { LEFT, RIGHT, UP, DOWN };
+    public enum State { IDLE, CHASING, ATTACKING };//states used in state machines 
+    public enum AttackType
+    {
+        NORMALSHOT,
+        CHARGESHOT,
+        SHOTGUN,
+        MELEE
+    }
 
     // Use this for initialization
     void Start () {
